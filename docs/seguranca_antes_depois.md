@@ -189,7 +189,7 @@ Ações a aplicar na Fase 7 do [plano de execução](plano_de_execucao.md), ante
 | # | Ação | Alertas resolvidos | Onde |
 |---|---|---|---|
 | 1 | Fixar as versões das dependências no `requirements.txt` (por exemplo, `pytest==9.2.0` e `coverage==7.17.4`) | A-01 | `python_pytest/requirements.txt` |
-| 2 | Remover `approvaltests` e `pytest-approvaltests`, se não forem usados até a Fase 6. Nenhum teste os usa hoje, e eles trazem a maior parte das 18 dependências transitivas | Reduz a superfície de dependências | `python_pytest/requirements.txt`, `tests/approvaltests_config.json` |
+| 2 | Remover `approvaltests` e `pytest-approvaltests` (decisão D7, tomada na Fase 3). Nenhum teste os usa, e eles trazem a maior parte das 18 dependências transitivas | Reduz a superfície de dependências | `python_pytest/requirements.txt`, `tests/approvaltests_config.json` |
 | 3 | Atualizar o `pip` do ambiente do projeto para 26.2.2 ou superior e documentar o passo no README | A-02, A-03 | Ambiente local e README |
 | 4 | Manter as ferramentas de auditoria no ambiente isolado `../.venv-audit` | A-04 | Procedimento |
 
@@ -231,7 +231,7 @@ Ações a aplicar na Fase 7 do [plano de execução](plano_de_execucao.md), ante
 |---|---|---|---|---|
 | Bandit | Arquivos / linhas em `src/` | 5 / 133 | | A refatoração cria novos módulos (`discount_policies.py`, `discount_engine.py`) |
 | Bandit | Ocorrências | 0 | | |
-| pip-audit | Pacotes auditados | 22 | | Deve cair se o `approvaltests` for removido |
+| pip-audit | Pacotes auditados | 22 | | Deve cair com a remoção do `approvaltests` (D7) |
 | pip-audit | Vulnerabilidades | 0 | | |
 | Safety | Ocorrências no `requirements.txt` | 1 (A-01, ignorada) | | Deve zerar com as versões fixadas |
 | Safety | Ocorrências no ambiente | 2 (A-02 e A-03, ignoradas) | | Deve zerar com o `pip` atualizado |
