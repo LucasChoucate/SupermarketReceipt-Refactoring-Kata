@@ -1,7 +1,5 @@
-import math
-
-from discount_policies import PercentageOffer
-from model_objects import ProductQuantity, SpecialOfferType, Discount
+from discount_policies import FiveForAmount, PercentageOffer, ThreeForTwo, TwoForAmount
+from model_objects import ProductQuantity, SpecialOfferType
 
 
 class ShoppingCart:
@@ -29,58 +27,19 @@ class ShoppingCart:
             self._product_quantities[product] = quantity
 
     def handle_offers(self, receipt, offers, catalog):
-        for product, quantity in self._product_quantities.items():
+        for product in self._product_quantities:
             if product not in offers:
                 continue
-            offer = offers[product]
-            if offer.offer_type == SpecialOfferType.TEN_PERCENT_DISCOUNT:
-                policy = PercentageOffer(product, offer.argument)
-                for discount in policy.apply(self._product_quantities, catalog):
-                    receipt.add_discount(discount)
-                continue
-            unit_price = catalog.unit_price(product)
-            discount = self._discount_for(offer, product, quantity, unit_price)
-            if discount:
+            policy = self._policy_for(offers[product])
+            for discount in policy.apply(self._product_quantities, catalog):
                 receipt.add_discount(discount)
 
-    def _discount_for(self, offer, product, quantity, unit_price):
+    @staticmethod
+    def _policy_for(offer):
         if offer.offer_type == SpecialOfferType.THREE_FOR_TWO:
-            return self._three_for_two(product, quantity, unit_price)
+            return ThreeForTwo(offer.product)
         if offer.offer_type == SpecialOfferType.TWO_FOR_AMOUNT:
-            return self._two_for_amount(offer, product, quantity, unit_price)
+            return TwoForAmount(offer.product, offer.argument)
         if offer.offer_type == SpecialOfferType.FIVE_FOR_AMOUNT:
-            return self._five_for_amount(offer, product, quantity, unit_price)
-        return None
-
-    @staticmethod
-    def _three_for_two(product, quantity, unit_price):
-        group_size = 3
-        quantity_as_int = int(quantity)
-        if quantity_as_int < group_size:
-            return None
-        number_of_groups = math.floor(quantity_as_int / group_size)
-        discount_amount = quantity * unit_price - (
-            (number_of_groups * 2 * unit_price) + quantity_as_int % group_size * unit_price)
-        return Discount(product, "3 for 2", -discount_amount)
-
-    @staticmethod
-    def _two_for_amount(offer, product, quantity, unit_price):
-        group_size = 2
-        quantity_as_int = int(quantity)
-        if quantity_as_int < group_size:
-            return None
-        # DEF-01 (legacy): real division ("/") instead of integer division ("//").
-        price_with_offer = offer.argument * (quantity_as_int / group_size) + quantity_as_int % group_size * unit_price
-        discount_amount = unit_price * quantity - price_with_offer
-        return Discount(product, "2 for " + str(offer.argument), -discount_amount)
-
-    @staticmethod
-    def _five_for_amount(offer, product, quantity, unit_price):
-        group_size = 5
-        quantity_as_int = int(quantity)
-        if quantity_as_int < group_size:
-            return None
-        number_of_groups = math.floor(quantity_as_int / group_size)
-        discount_amount = unit_price * quantity - (
-            offer.argument * number_of_groups + quantity_as_int % group_size * unit_price)
-        return Discount(product, str(group_size) + " for " + str(offer.argument), -discount_amount)
+            return FiveForAmount(offer.product, offer.argument)
+        return PercentageOffer(offer.product, offer.argument)
