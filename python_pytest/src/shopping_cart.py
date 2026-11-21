@@ -28,41 +28,60 @@ class ShoppingCart:
             self._product_quantities[product] = quantity
 
     def handle_offers(self, receipt, offers, catalog):
-        for p in self._product_quantities.keys():
-            quantity = self._product_quantities[p]
-            if p in offers.keys():
-                offer = offers[p]
-                unit_price = catalog.unit_price(p)
-                quantity_as_int = int(quantity)
-                discount = None
-                x = 1
-                if offer.offer_type == SpecialOfferType.THREE_FOR_TWO:
-                    x = 3
+        for product, quantity in self._product_quantities.items():
+            if product not in offers:
+                continue
+            offer = offers[product]
+            unit_price = catalog.unit_price(product)
+            discount = self._discount_for(offer, product, quantity, unit_price)
+            if discount:
+                receipt.add_discount(discount)
 
-                elif offer.offer_type == SpecialOfferType.TWO_FOR_AMOUNT:
-                    x = 2
-                    if quantity_as_int >= 2:
-                        total = offer.argument * (quantity_as_int / x) + quantity_as_int % 2 * unit_price
-                        discount_n = unit_price * quantity - total
-                        discount = Discount(p, "2 for " + str(offer.argument), -discount_n)
+    def _discount_for(self, offer, product, quantity, unit_price):
+        if offer.offer_type == SpecialOfferType.THREE_FOR_TWO:
+            return self._three_for_two(product, quantity, unit_price)
+        if offer.offer_type == SpecialOfferType.TWO_FOR_AMOUNT:
+            return self._two_for_amount(offer, product, quantity, unit_price)
+        if offer.offer_type == SpecialOfferType.FIVE_FOR_AMOUNT:
+            return self._five_for_amount(offer, product, quantity, unit_price)
+        if offer.offer_type == SpecialOfferType.TEN_PERCENT_DISCOUNT:
+            return self._percentage(offer, product, quantity, unit_price)
+        return None
 
-                if offer.offer_type == SpecialOfferType.FIVE_FOR_AMOUNT:
-                    x = 5
+    @staticmethod
+    def _three_for_two(product, quantity, unit_price):
+        group_size = 3
+        quantity_as_int = int(quantity)
+        if quantity_as_int < group_size:
+            return None
+        number_of_groups = math.floor(quantity_as_int / group_size)
+        discount_amount = quantity * unit_price - (
+            (number_of_groups * 2 * unit_price) + quantity_as_int % group_size * unit_price)
+        return Discount(product, "3 for 2", -discount_amount)
 
-                number_of_x = math.floor(quantity_as_int / x)
-                if offer.offer_type == SpecialOfferType.THREE_FOR_TWO and quantity_as_int > 2:
-                    discount_amount = quantity * unit_price - (
-                                (number_of_x * 2 * unit_price) + quantity_as_int % 3 * unit_price)
-                    discount = Discount(p, "3 for 2", -discount_amount)
+    @staticmethod
+    def _two_for_amount(offer, product, quantity, unit_price):
+        group_size = 2
+        quantity_as_int = int(quantity)
+        if quantity_as_int < group_size:
+            return None
+        # DEF-01 (legacy): real division ("/") instead of integer division ("//").
+        price_with_offer = offer.argument * (quantity_as_int / group_size) + quantity_as_int % group_size * unit_price
+        discount_amount = unit_price * quantity - price_with_offer
+        return Discount(product, "2 for " + str(offer.argument), -discount_amount)
 
-                if offer.offer_type == SpecialOfferType.TEN_PERCENT_DISCOUNT:
-                    discount = Discount(p, str(offer.argument) + "% off",
-                                        -quantity * unit_price * offer.argument / 100.0)
+    @staticmethod
+    def _five_for_amount(offer, product, quantity, unit_price):
+        group_size = 5
+        quantity_as_int = int(quantity)
+        if quantity_as_int < group_size:
+            return None
+        number_of_groups = math.floor(quantity_as_int / group_size)
+        discount_amount = unit_price * quantity - (
+            offer.argument * number_of_groups + quantity_as_int % group_size * unit_price)
+        return Discount(product, str(group_size) + " for " + str(offer.argument), -discount_amount)
 
-                if offer.offer_type == SpecialOfferType.FIVE_FOR_AMOUNT and quantity_as_int >= 5:
-                    discount_total = unit_price * quantity - (
-                                offer.argument * number_of_x + quantity_as_int % 5 * unit_price)
-                    discount = Discount(p, str(x) + " for " + str(offer.argument), -discount_total)
-
-                if discount:
-                    receipt.add_discount(discount)
+    @staticmethod
+    def _percentage(offer, product, quantity, unit_price):
+        return Discount(product, str(offer.argument) + "% off",
+                        -quantity * unit_price * offer.argument / 100.0)
