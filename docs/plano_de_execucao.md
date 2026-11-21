@@ -2,7 +2,7 @@
 
 Este documento organiza o trabalho que falta para cumprir o edital. Ele está dividido em 10 fases, em ordem. Cada fase indica o passo do edital que cumpre, o que fazer, quais arquivos mudam e como saber que terminou.
 
-> **Situação atual.** As Fases 0 a 3 e a refatoração da Fase 4 (parte 4A) estão integradas na `develop`. As correções dos três defeitos (parte 4B) estão concluídas na branch `fix/defeitos-legado`, com 80 testes passando e nenhum `xfail`. Ainda faltam os combos, a segurança "depois", o README e a apresentação.
+> **Situação atual.** As Fases 0 a 4 estão integradas na `develop`: documentos de análise, linha de base de segurança, testes de caracterização, refatoração com padrões de projeto e correção dos três defeitos. Os combos (Fase 5) estão concluídos na branch `feat/combos`, com 109 testes passando. Ainda faltam a regressão com combos (Fase 6), a segurança "depois", o README e a apresentação.
 
 ---
 
@@ -17,7 +17,7 @@ Este documento organiza o trabalho que falta para cumprir o edital. Ele está di
 - [Fase 3: Complementar os testes de caracterização](#fase-3-complementar-os-testes-de-caracterização)
 - [Fase 4: Refatoração com padrões de projeto](#fase-4-refatoração-com-padrões-de-projeto)
 - [Fase 5: Implementar os combos](#fase-5-implementar-os-combos)
-- [Fase 6: Testes de regressão e dos combos](#fase-6-testes-de-regressão-e-dos-combos)
+- [Fase 6: Testes de regressão](#fase-6-testes-de-regressão)
 - [Fase 7: Reavaliação de segurança](#fase-7-reavaliação-de-segurança)
 - [Fase 8: Documento de padrões de projeto](#fase-8-documento-de-padrões-de-projeto)
 - [Fase 9: README e evidências finais](#fase-9-readme-e-evidências-finais)
@@ -122,7 +122,7 @@ Estas decisões devem constar no plano de contingência e no README.
 | D2 | Defeitos confirmados do legado: **DEF-01** ("2 por valor" com quantidade ímpar cobra a mais), **DEF-02** (fração gratuita nas ofertas por grupo) e **DEF-03** (`product_with_name` fora do contrato do catálogo) | **Corrigir todos** | DEF-01 cobra do cliente mais do que sem a oferta; DEF-02 concede desconto maior que o anunciado; DEF-03 quebra com qualquer catálogo real. Detalhes no [registro de defeitos](registro_de_defeitos.md) |
 | D3 | Momento e forma das correções | **Depois da refatoração estrutural**, em uma branch própria (`fix/defeitos-legado`) criada após o merge da refatoração, com um commit `fix:` por defeito, cada um precedido de um teste `xfail(strict=True)` do comportamento correto | Separa mudança de estrutura de mudança de comportamento. Com o Template Method, DEF-01 e DEF-02 são corrigidos em um único lugar, e cada correção pode ser revertida isoladamente |
 | D4 | Representação do combo no recibo | Um `Discount` por produto do combo, com a descrição `"combo 10% off"` | Não muda a classe `Discount` nem o `ReceiptPrinter` |
-| D5 | API do combo | Nova e aditiva: `teller.add_bundle_offer(products, percent=10.0)` | Não altera o enum `SpecialOfferType`, o `teller.offers` nem o `add_special_offer`, que são protegidos por testes de contrato |
+| D5 | API do combo | Nova e aditiva: `teller.add_bundle_offer(products, percent=10)` | Não altera o enum `SpecialOfferType`, o `teller.offers` nem o `add_special_offer`, que são protegidos por testes de contrato |
 | D6 | Dois combos disputando o mesmo produto | Vence a ordem de cadastro | Simples, determinístico e testável |
 | D7 | Uso do `approvaltests` | Não usar e remover na Fase 7, junto com o `pytest-approvaltests` e o `tests/approvaltests_config.json` | Nenhum teste usa a biblioteca. A suíte de caracterização já demonstra a preservação de comportamento com 99% de cobertura de ramos e recibos de referência fixados no próprio teste. A remoção reduz a superfície de dependências (seção 8 do roteiro: evitar dependências desnecessárias) |
 
@@ -432,72 +432,64 @@ Commits: `a16de14` (DEF-01), `d06abcc` (DEF-02) e `11c4b76` (DEF-03).
 
 > **Edital:** Passo 9 | **Barema:** 0,5 | Evita a penalidade de −2,0 | **Branch:** `feat/combos`
 
-| # | Commit | O que muda |
-|---|---|---|
-| 5.1 | `feat: adiciona BundleOffer` | Nova estratégia em `discount_policies.py`. Calcula `n = min(⌊disponível / exigido⌋)` entre os produtos do combo. Gera **um `Discount` por produto**, com a descrição `"combo 10% off"` (D4), e consome `n × exigido` de cada produto |
-| 5.2 | `feat: adiciona Teller.add_bundle_offer` | `add_bundle_offer(products, percent=10.0)`. Um produto repetido na lista significa quantidade maior que 1. Os combos ficam em `self.bundles`, **sem tocar** em `self.offers` nem no enum (D5) |
-| 5.3 | `feat: DiscountEngine escolhe a melhor ordem entre ofertas e combos` | Calcula a ordem C (ofertas → combos) e a ordem B (combos → ofertas) e fica com o menor total, comparado em centavos; em empate, a C (D1). Produtos com 0 unidades disponíveis são ignorados, para não gerar linhas de `-0.00`. Os descontos individuais aparecem antes dos de combo no recibo |
+Cada commit traz o código e os testes do que entrega: um PR de funcionalidade sem testes não demonstraria a regra que implementa. Por isso, os cenários de combo previstos para a Fase 6 entraram aqui, e a Fase 6 ficou com a regressão.
 
-Esboço do engine:
+| # | Commit | O que muda | Testes |
+|---|---|---|---|
+| 5.1 | `feat: adiciona BundleOffer, a estratégia de desconto dos combos` | Nova estratégia em `discount_policies.py`. Número de combos = menor `⌊disponível / exigido⌋` entre os produtos do combo (só a parte inteira, para produtos por peso). Gera **um `Discount` por produto**, com a descrição `combo 10% off` (D4), e consome `n × exigido` de cada produto | 87 passed |
+| 5.2 | `feat: adiciona Teller.add_bundle_offer e aplica os combos no checkout` | `add_bundle_offer(products, percent=10)`: um produto repetido na lista significa quantidade maior que 1; lista vazia lança `ValueError`. Os combos ficam em `self.bundles`, **sem tocar** em `self.offers` nem no enum (D5). O `DiscountEngine.apply` ganha o parâmetro opcional `bundles` e aplica os combos depois das ofertas | 97 passed |
+| 5.3 | `feat: escolhe a ordem de menor total entre ofertas e combos` | O engine calcula a ordem C (ofertas → combos) e a ordem B (combos → ofertas) e fica com o menor total, comparado em centavos; em empate, a C (D1). Uma política cujas unidades já foram todas consumidas é pulada, para não gerar linhas de `0.00`; o caso legado de quantidade zero continua gerando a linha. No recibo, os descontos individuais vêm antes dos de combo. `DiscountPolicy` ganha o método `products()`, usado nessa verificação | 109 passed |
 
-```python
-def _apply_in_order(self, policies, quantities, catalog):
-    available = dict(quantities)
-    discounts = []
-    for policy in policies:
-        result = policy.apply(available, catalog)
-        discounts += result.discounts
-        for product, qty in result.consumed.items():
-            available[product] -= qty
-    return discounts
+**Decisões tomadas na implementação:**
+- **`percent=10`, e não `10.0`.** Com `10.0`, a descrição sairia `combo 10.0% off`, contrariando a D4.
+- **Validação só na API nova.** `add_bundle_offer([])` lança `ValueError`. Como a API é nova, a validação não altera nenhum comportamento existente.
 
-def apply(self, receipt, quantities, offers, bundles, catalog):
-    individual = [create_policy(offers[p]) for p in quantities if p in offers]
-    offers_first = self._apply_in_order([*individual, *bundles], quantities, catalog)
-    bundles_first = self._apply_in_order([*bundles, *individual], quantities, catalog)
-    # descontos são negativos: soma menor = cliente paga menos
-    # compara em centavos; B só vence se for ESTRITAMENTE melhor (empate → C)
-    in_cents = lambda discounts: round(sum(d.discount_amount for d in discounts), 2)
-    chosen = bundles_first if in_cents(bundles_first) < in_cents(offers_first) else offers_first
-    for discount in chosen:
-        receipt.add_discount(discount)
-```
+### Cenários cobertos (`tests/test_combos.py`)
+
+| # | Cenário | Esperado | Teste |
+|---|---|---|---|
+| 1 | Combo escova + creme; carrinho 1 + 1 | desconto −2,50; total 22,50 | `test_cenarios_do_roteiro[1_escova_1_creme]` |
+| 2 | 2 escovas + 1 creme | −2,50; total 32,50 (escova excedente a preço cheio) | `test_cenarios_do_roteiro[2_escovas_1_creme_excedente_a_preco_cheio]` |
+| 3 | 2 escovas + 2 cremes | −5,00; total 45,00 | `test_cenarios_do_roteiro[2_escovas_2_cremes_dois_combos]` |
+| 4 | Só 1 escova | sem desconto e sem linha de combo | `test_cenarios_do_roteiro[so_1_escova_combo_incompleto]`, `test_combo_incompleto_nao_gera_linha_de_desconto` |
+| 5 | Combo de 2 escovas + 1 creme; carrinho 5 + 3 | 2 combos; desconto −7,00 | `test_combo_que_exige_duas_unidades_do_mesmo_produto` |
+| 6 | Escova com "3 por 2"; carrinho 3 + 1 | total 35,00, sem linha de combo | `test_escolhe_a_ordem_de_menor_total[oferta_vence_3_por_2]` |
+| 7 | Escova com 20%; carrinho 1 + 1 | total 22,50 | `test_escolhe_a_ordem_de_menor_total[combo_vence_percentual_de_20]` |
+| 8 | Escova com "5 por 40"; carrinho 5 + 5 | total 112,50 | `test_escolhe_a_ordem_de_menor_total[combo_vence_5_por_valor]` |
+| 9 | Escova com "2 por 15"; carrinho 2 + 2 | total 45,00, com a linha `2 for 15.0` e **sem** linhas de combo | `test_escolhe_a_ordem_de_menor_total[empate_mantem_a_oferta]` |
+| 10 | Combos escova + creme e escova + fio; carrinho 1 + 1 + 1 | só o primeiro combo | `test_dois_combos_disputando_o_mesmo_produto_vence_a_ordem_de_cadastro` |
+| 11 | Fio dental com "3 por 2" fora do combo | oferta do fio inalterada | `test_oferta_de_produto_fora_do_combo_nao_e_afetada` |
+| 12 | Vários carrinhos, com cada tipo de oferta na escova | total com combos ≤ total sem combos; sem combo completo, recibo idêntico | `test_cadastrar_um_combo_nunca_encarece_o_carrinho` |
+| 13 | Recibo impresso com combo | texto exato | `test_recibo_impresso_com_combo` |
+| 14 | `add_bundle_offer` | `teller.offers` e o enum inalterados | `test_add_bundle_offer_nao_altera_as_ofertas_nem_o_enum` |
+
+Também cobertos: combo vencedor sem linha vazia da oferta substituída, combo usando as unidades que sobram da oferta, produto por peso (parte inteira), percentual informado no cadastro e lista vazia em `add_bundle_offer`.
+
+- [x] Commits 5.1 a 5.3 aplicados, com a suíte verificada em cada um.
+- [x] Evidências: [`05_pytest_apos_combos.log`](evidencias/testes/05_pytest_apos_combos.log) (109 passed, 29 deles de combos) e [`05_cobertura_apos_combos.txt`](evidencias/testes/05_cobertura_apos_combos.txt) (99% de ramos; 100% em `discount_engine.py`, `discount_policies.py` e `teller.py`).
+
+**Pronto quando:**
+- [x] nenhum teste existente foi alterado: a branch só acrescenta `test_combos.py`;
+- [x] os 14 cenários acima passam;
+- [x] carrinhos sem combos cadastrados mantêm exatamente o resultado anterior.
 
 ---
 
-## Fase 6: Testes de regressão e dos combos
+## Fase 6: Testes de regressão
 
-> **Edital:** Passo 10 | **Barema:** 1,0 | Evita a penalidade de −3,0 | **Branch:** `test/combos`
+> **Edital:** Passo 10 | **Barema:** 1,0 | Evita a penalidade de −3,0 | **Branch:** `test/regressao-combos`
 
-Criar `python_pytest/tests/test_combos.py`, usando as fixtures existentes: escova R$ 10, creme dental R$ 15 e fio dental R$ 5.
+Os cenários de combo (1 a 14) entraram na Fase 5, junto com o código. Esta fase cobre a regressão e as evidências finais de testes.
 
-| # | Cenário | Esperado | Critério |
-|---|---|---|---|
-| 1 | Combo escova + creme; carrinho 1 + 1 | desconto −2,50; total 22,50 | Combo completo |
-| 2 | Carrinho com 2 escovas + 1 creme | −2,50; total 32,50 | Excedente a preço cheio |
-| 3 | Carrinho com 2 escovas + 2 cremes | −5,00; total 45,00 | Múltiplos combos |
-| 4 | Só 1 escova | sem desconto | Combo incompleto |
-| 5 | Combo de 2 escovas + 1 creme; carrinho 5 + 3 | 2 combos | Combo com quantidade maior que 1 |
-| 6 | Escova com "3 por 2"; carrinho 3 + 1 | total 35,00, sem linha de combo | Oferta vence |
-| 7 | Escova com 20%; carrinho 1 + 1 | total 22,50 | Combo vence |
-| 8 | Escova com "5 por 40"; carrinho 5 + 5 | total 112,50 | Combo vence oferta de 20% |
-| 9 | Escova com "2 por 15"; carrinho 2 + 2 | total 45,00, com a linha `2 for 15.0 (escova)` e **sem** linhas de combo | **Empate: vencem as ofertas** |
-| 10 | Combos escova + creme e escova + fio; carrinho 1 + 1 + 1 | só o primeiro combo | Ordem de cadastro (D6) |
-| 11 | Fio dental com "3 por 2" fora do combo | oferta do fio inalterada | Convivência |
-| 12 | Parametrizado com vários carrinhos | total com combos ≤ total sem combos | "Nunca encarece" |
-| 13 | Recibo impresso com combo | texto exato | RF13 |
-| 14 | `add_bundle_offer` | `teller.offers` inalterado | Contrato (D5) |
-| 15 | Suíte de caracterização com combos cadastrados para outros produtos | resultados inalterados | Regressão |
+- [ ] **Cenário 15: caracterização com combos cadastrados para outros produtos.** Repetir os recibos de referência ([`test_recibos_de_referencia.py`](../python_pytest/tests/test_recibos_de_referencia.py)) com um combo de `shampoo` + `condicionador` cadastrado. Esses produtos não aparecem nos carrinhos de referência, então os recibos devem continuar idênticos.
+- [ ] **Evidências em `docs/evidencias/testes/`:**
+  - [ ] `06_pytest_final.log`
+  - [ ] `06_cobertura_final.txt`
+- [ ] **Tabela comparativa em `docs/evidencias_testes.md`:**
 
-Evidências a salvar em `docs/evidencias/testes/`:
-
-- [ ] `05_pytest_depois.log`
-- [ ] `05_cobertura_depois.txt`
-- [ ] Tabela comparativa em `docs/evidencias_testes.md`:
-
-  | Métrica | Antes | Depois |
+  | Métrica | Legado (início) | Depois |
   |---|---|---|
-  | Testes | 57 | |
+  | Testes | 1 (original) / 57 (caracterização) | |
   | Aprovados | 57 | |
   | Cobertura de ramos (`src/`) | 99% | |
   | Casos alterados de propósito | — | 7 (DEF-01: 3; DEF-02: 4) |

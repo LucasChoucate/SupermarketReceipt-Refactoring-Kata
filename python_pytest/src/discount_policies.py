@@ -24,6 +24,10 @@ class DiscountPolicy(ABC):
         listed in ``PolicyResult.consumed`` cannot receive another discount.
         """
 
+    @abstractmethod
+    def products(self):
+        """Products this policy can discount."""
+
 
 class PercentageOffer(DiscountPolicy):
     """Percentage discount applied to the whole quantity of a product."""
@@ -31,6 +35,9 @@ class PercentageOffer(DiscountPolicy):
     def __init__(self, product, percentage):
         self.product = product
         self.percentage = percentage
+
+    def products(self):
+        return (self.product,)
 
     def apply(self, available, catalog):
         """Discount the percentage over all available units, consuming them all."""
@@ -50,6 +57,9 @@ class GroupPriceOffer(DiscountPolicy):
 
     def __init__(self, product):
         self.product = product
+
+    def products(self):
+        return (self.product,)
 
     def apply(self, available, catalog):
         """Template method: charge each complete group at the group price and the rest at full price.
@@ -132,6 +142,42 @@ class FiveForAmount(GroupPriceOffer):
     def description(self):
         return "5 for " + str(self.amount)
 
+
+
+class BundleOffer(DiscountPolicy):
+    """Discount on each complete bundle of products (combo).
+
+    A bundle is complete when the cart has every product of the bundle in
+    the required quantity. The percentage applies only to the units that
+    form complete bundles; the remaining units keep their price.
+    """
+
+    def __init__(self, required, percent=10):
+        """``required`` maps each product of the bundle to the units it needs."""
+        self.required = dict(required)
+        self.percent = percent
+
+    def products(self):
+        return tuple(self.required)
+
+    def apply(self, available, catalog):
+        """Discount the complete bundles, consuming the units they use."""
+        number_of_bundles = min(
+            int(available.get(product, 0)) // quantity for product, quantity in self.required.items())
+        if number_of_bundles <= 0:
+            return PolicyResult([], {})
+        discounts = []
+        consumed = {}
+        for product, quantity in self.required.items():
+            units = number_of_bundles * quantity
+            amount = -units * catalog.unit_price(product) * self.percent / 100.0
+            discounts.append(Discount(product, self.description(), amount))
+            consumed[product] = units
+        return PolicyResult(discounts, consumed)
+
+    def description(self):
+        """Text of the discount lines in the receipt."""
+        return "combo " + str(self.percent) + "% off"
 
 # Simple Factory: translates the public SpecialOfferType into a strategy.
 # A new kind of offer only needs a new policy class and one entry here.

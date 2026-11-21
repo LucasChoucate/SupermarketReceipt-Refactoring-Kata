@@ -54,7 +54,7 @@ As três correções foram aplicadas na branch `fix/defeitos-legado` (commits `a
 
 1. Um combo é um conjunto predefinido de produtos e respectivas quantidades. O desconto só é concedido quando o carrinho contém todos os produtos nas quantidades exigidas pelo combo (RF06).
 2. O desconto é de **10%** sobre o preço original dos produtos de cada combo completo (RF07). O percentual pode ser informado no cadastro, mas o padrão é 10%.
-3. O combo é cadastrado por uma API nova e aditiva, `teller.add_bundle_offer(products, percent=10.0)`. Um produto repetido na lista significa quantidade maior que 1. O enum `SpecialOfferType`, o dicionário `teller.offers` e o método `add_special_offer` não mudam (D5).
+3. O combo é cadastrado por uma API nova e aditiva, `teller.add_bundle_offer(products, percent=10)`. Um produto repetido na lista significa quantidade maior que 1, e uma lista vazia lança `ValueError`. O enum `SpecialOfferType`, o dicionário `teller.offers` e o método `add_special_offer` não mudam (D5).
 4. O número de combos completos é o menor valor de ⌊disponível ÷ exigido⌋ entre os produtos do combo (RF09). A fração de produtos por peso nunca forma combo.
 
    ```
@@ -130,7 +130,7 @@ Nomes, assinaturas e tipos de retorno destas interfaces não podem mudar. Elas s
 | `ReceiptPrinter.print_receipt(receipt)`, em `tests/receipt_printer.py` | Testes do recibo impresso |
 | `SupermarketCatalog.add_product()` e `unit_price()` | `Teller` e `FakeCatalog`. O contrato **ganha** `product_with_name()` no DEF-03, sem perder nenhuma operação |
 
-**Interfaces novas (aditivas):** `Teller.add_bundle_offer(products, percent=10.0)` e as classes internas da refatoração (`DiscountPolicy`, `GroupPriceOffer`, `DiscountEngine` etc.). Elas não substituem nenhuma das interfaces acima.
+**Interfaces novas (aditivas):** `Teller.add_bundle_offer(products, percent=10)`, a lista `Teller.bundles`, o parâmetro opcional `bundles` de `DiscountEngine.apply` e as classes internas da refatoração e dos combos (`DiscountPolicy`, `GroupPriceOffer`, `BundleOffer`, `DiscountEngine` etc.). Elas não substituem nenhuma das interfaces acima.
 
 ---
 
@@ -173,8 +173,8 @@ Cada etapa começa somente quando a anterior cumpriu a condição para avançar.
 | 2 | Complementar a caracterização (Fase 3) (**concluída**) | Fixar recibos de carrinhos sem combos, criar os testes `xfail(strict=True)` dos defeitos e salvar a cobertura de baseline. | Suíte passando, `xfail` falhando como esperado, cobertura salva em `evidencias/testes/` | R10, R13 |
 | 3 | Refatoração estrutural (Fase 4A, branch `refactor/politicas-desconto`) (**concluída**) | Distribuir as responsabilidades promocionais com Strategy, Template Method e Simple Factory. `handle_offers` vira uma fachada para o `DiscountEngine`, e as políticas passam a informar as unidades consumidas. Inclui um teste de caracterização complementar (quantidade zero), testes unitários dos padrões e docstrings. | Suíte de caracterização passando **sem nenhuma alteração** em cada commit, os 7 `xfail` ainda falhando e `handle_offers` sem `if` por tipo de oferta | R03, R13 |
 | 4 | Correção dos defeitos (Fase 4B, branch `fix/defeitos-legado`, criada após o merge da etapa 3) (**concluída**) | Corrigir DEF-01, DEF-02 e DEF-03, um commit `fix:` por defeito. | Só os 7 casos previstos mudaram de valor esperado, e não resta nenhum `xfail` | R03, R10 |
-| 5 | Implementar os combos (Fase 5) | Incluir `BundleOffer`, `Teller.add_bundle_offer` e a escolha entre as ordens C e B no `DiscountEngine`. | Suíte inteira passando, com `teller.offers` e `SpecialOfferType` inalterados | R04, R05, R06, R07, R08 |
-| 6 | Testes de regressão e dos combos (Fase 6) | Cobrir os cenários de combo, de convivência com ofertas e de "nunca encarece", e repetir a caracterização com combos cadastrados para outros produtos. | Suíte passando, logs e cobertura "depois" salvos em `evidencias/testes/` | R04 a R08, R11, R12, R13 |
+| 5 | Implementar os combos (Fase 5, branch `feat/combos`) (**concluída**) | Incluir `BundleOffer`, `Teller.add_bundle_offer` e a escolha entre as ordens C e B no `DiscountEngine`, cada commit com os testes do que entrega: cenários do roteiro, convivência com ofertas e "nunca encarece". | Suíte inteira passando, com `teller.offers` e `SpecialOfferType` inalterados e carrinhos sem combos com o resultado anterior | R04, R05, R06, R07, R08 |
+| 6 | Testes de regressão (Fase 6) | Repetir os recibos de referência da caracterização com combos cadastrados para outros produtos e consolidar as evidências de testes. | Suíte passando, logs e cobertura "depois" salvos em `evidencias/testes/` | R04 a R08, R11, R12, R13 |
 | 7 | Reavaliação de segurança (Fase 7) | Rodar Bandit, pip-audit e Safety sobre a versão final e comparar com a linha de base. | Comparativo de antes e depois registrado, com riscos remanescentes | (RNF07) |
 | 8 | Revisão da documentação (Fases 8 e 9) | Garantir a consistência entre requisitos, código, testes e README. | Rastreabilidade de [requisitos.md](requisitos.md) completa | Todos |
 
@@ -232,6 +232,6 @@ O controle de versão é feito com Git, preservando o código original e registr
 | D2 | Defeitos confirmados do legado: DEF-01 ("2 por valor" com quantidade ímpar cobra a mais), DEF-02 (fração gratuita nas ofertas por grupo) e DEF-03 (`product_with_name` fora do contrato do catálogo) | Corrigir todos | DEF-01 cobra do cliente mais do que sem a oferta, DEF-02 concede desconto maior que o anunciado, e DEF-03 quebra com qualquer catálogo real. Detalhes no [registro de defeitos](registro_de_defeitos.md) |
 | D3 | Momento e forma das correções | Depois da refatoração estrutural, em uma branch própria (`fix/defeitos-legado`) criada após o merge da refatoração, com um commit `fix:` por defeito, cada um precedido de um teste `xfail(strict=True)` do comportamento correto | Separa mudança de estrutura de mudança de comportamento. Com o Template Method, DEF-01 e DEF-02 são corrigidos em um único lugar, e cada correção pode ser revertida isoladamente |
 | D4 | Representação do combo no recibo | Um `Discount` por produto do combo, com a descrição `combo 10% off` | Não muda a classe `Discount` nem o `ReceiptPrinter` |
-| D5 | API do combo | Nova e aditiva: `teller.add_bundle_offer(products, percent=10.0)` | Não altera o enum `SpecialOfferType`, o `teller.offers` nem o `add_special_offer`, que são protegidos por testes de contrato |
+| D5 | API do combo | Nova e aditiva: `teller.add_bundle_offer(products, percent=10)` | Não altera o enum `SpecialOfferType`, o `teller.offers` nem o `add_special_offer`, que são protegidos por testes de contrato |
 | D6 | Dois combos disputando o mesmo produto | Vence a ordem de cadastro | Simples, determinístico e testável |
 | D7 | Uso do `approvaltests` | Não usar e remover na Fase 7, junto com o `pytest-approvaltests` e o `tests/approvaltests_config.json` | Nenhum teste usa a biblioteca. A suíte de caracterização já demonstra a preservação de comportamento com 99% de cobertura de ramos e recibos de referência fixados no próprio teste. A remoção reduz a superfície de dependências (seção 8 do roteiro: evitar dependências desnecessárias) |
