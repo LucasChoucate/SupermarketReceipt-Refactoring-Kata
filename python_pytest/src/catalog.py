@@ -14,3 +14,7 @@ class SupermarketCatalog:
     def unit_price(self, product):
         """Return the current unit price of ``product``."""
         raise Exception("cannot be called from a unit test - it accesses the database")
+
+    def product_with_name(self, name):
+        """Return the product called ``name``, or None if it does not exist."""
+        raise Exception("cannot be called from a unit test - it accesses the database")

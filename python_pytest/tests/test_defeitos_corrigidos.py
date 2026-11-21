@@ -1,15 +1,12 @@
-"""Comportamento correto dos defeitos confirmados do legado.
+"""Comportamento correto dos defeitos encontrados no legado.
 
-Cada teste descreve o comportamento CORRETO e está marcado com
-xfail(strict=True): ele falha enquanto o defeito existe, o que serve de
-evidência do defeito. No commit fix: de cada defeito (Fases 4.7 a 4.9), a
-marcação xfail é removida e o teste que fixava o comportamento defeituoso,
-em test_comportamento_legado.py, é apagado.
+Estes testes foram criados antes das correções, marcados com
+xfail(strict=True), como evidência de cada defeito. A marcação foi
+removida no commit fix: de cada um. Detalhes em docs/registro_de_defeitos.md.
 
-Com strict=True, se o defeito for corrigido e a marcação não for removida,
-o teste passa a falhar (XPASS), o que impede que ela fique esquecida.
-
-Detalhes de cada defeito: docs/registro_de_defeitos.md.
+- DEF-01: "2 por valor" com quantidade ímpar cobrava a sobra duas vezes.
+- DEF-02: a fração que sobra nas ofertas por grupo não era cobrada.
+- DEF-03: Teller.product_with_name dependia de um atributo fora do contrato do catálogo.
 """
 import pytest
 
@@ -78,8 +75,6 @@ class CatalogoDoContrato(SupermarketCatalog):
         return self._produtos.get(name)
 
 
-@pytest.mark.xfail(strict=True, raises=AttributeError,
-                   reason="DEF-03: Teller acessa catalog.products, fora do contrato")
 def test_product_with_name_funciona_com_qualquer_catalogo_do_contrato():
     catalogo = CatalogoDoContrato()
     escova = Product("escova", ProductUnit.EACH)
