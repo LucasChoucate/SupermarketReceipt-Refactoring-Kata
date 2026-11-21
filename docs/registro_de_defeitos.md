@@ -3,16 +3,18 @@
 Este documento registra os defeitos encontrados no Supermarket Receipt durante o diagnóstico técnico e os testes de caracterização. Para cada defeito, ele descreve como o problema foi encontrado, sua causa e seu impacto, e explica **como a equipe decidiu resolvê-lo**.
 
 > **Decisão da equipe:** todos os defeitos confirmados serão **corrigidos**. As correções são feitas **depois** da refatoração estrutural, em commits isolados do tipo `fix:`, um por defeito. Cada correção é acompanhada de testes que fixam o comportamento correto e de uma justificativa neste registro.
+>
+> **Situação:** os três defeitos foram **corrigidos** na branch `fix/defeitos-legado` (commits `a16de14`, `d06abcc` e `11c4b76`). A suíte passa com 80 testes e nenhum `xfail` ([`04_pytest_apos_correcoes.log`](evidencias/testes/04_pytest_apos_correcoes.log)).
 
 ---
 
 ## 1. Resumo
 
-| ID | Defeito | Onde | Severidade | Quem é prejudicado | Decisão |
+| ID | Defeito | Onde | Severidade | Quem é prejudicado | Situação |
 |---|---|---|---|---|---|
-| DEF-01 | "2 por valor" com quantidade ímpar cobra mais do que sem a oferta | `shopping_cart.py`, linha 45 | **Alta** | Cliente | Corrigir |
-| DEF-02 | Nas ofertas por grupo, a fração restante de produtos por peso sai de graça | `shopping_cart.py`, linhas 45, 54–55 e 63–64 | **Média** | Supermercado | Corrigir |
-| DEF-03 | `Teller.product_with_name` depende de um atributo que não faz parte do contrato do catálogo | `teller.py`, linhas 28–29 | **Baixa** (latente) | Operação do sistema | Corrigir |
+| DEF-01 | "2 por valor" com quantidade ímpar cobra mais do que sem a oferta | `shopping_cart.py`, linha 45 | **Alta** | Cliente | Corrigido (`a16de14`) |
+| DEF-02 | Nas ofertas por grupo, a fração restante de produtos por peso sai de graça | `shopping_cart.py`, linhas 45, 54–55 e 63–64 | **Média** | Supermercado | Corrigido (`d06abcc`) |
+| DEF-03 | `Teller.product_with_name` depende de um atributo que não faz parte do contrato do catálogo | `teller.py`, linhas 28–29 | **Baixa** (latente) | Operação do sistema | Corrigido (`11c4b76`) |
 
 **Critério de severidade:**
 - **Alta:** o valor cobrado contraria a regra da oferta, contra o cliente.
@@ -27,7 +29,7 @@ Este documento registra os defeitos encontrados no Supermarket Receipt durante o
 
 | Campo | Descrição |
 |---|---|
-| **Como foi encontrado** | Testes de caracterização: `test_dois_por_valor_com_quantidade_impar_defeito_legado` |
+| **Como foi encontrado** | Testes de caracterização: `test_dois_por_valor_com_quantidade_impar_defeito_legado` (removido na correção, commit `a16de14`) |
 | **Regra de negócio** | A cada par, paga-se o preço promocional. A unidade que sobra é cobrada a preço cheio |
 | **Onde** | [`python_pytest/src/shopping_cart.py`, linha 45](../python_pytest/src/shopping_cart.py) |
 | **Severidade** | Alta: a oferta **encarece** a compra |
@@ -64,7 +66,7 @@ Com 3 unidades, o código cobra 1,5 × R$ 15,00 = R$ 22,50 pelos "pares" **e** R
 
 | Campo | Descrição |
 |---|---|
-| **Como foi encontrado** | Testes de caracterização: `test_promocao_por_grupo_com_quantidade_fracionaria_legado` e `test_recibo_impresso_com_todas_as_modalidades_de_oferta` |
+| **Como foi encontrado** | Testes de caracterização: `test_promocao_por_grupo_com_quantidade_fracionaria_legado` (removido na correção, commit `d06abcc`) e `test_recibo_impresso_com_todas_as_modalidades_de_oferta` |
 | **Regra de negócio** | Produtos por peso são cobrados pelo valor exato. Nas ofertas por grupo, o número de grupos usa a parte inteira da quantidade, e **toda a sobra** (unidades e fração) é cobrada a preço cheio |
 | **Onde** | [`python_pytest/src/shopping_cart.py`](../python_pytest/src/shopping_cart.py): linha 45 (2 por valor), linhas 54–55 (3 por 2) e 63–64 (5 por valor) |
 | **Ofertas afetadas** | 3 por 2, 2 por valor e 5 por valor, apenas quando a oferta **ativa** com quantidade fracionária. O desconto percentual não é afetado |
@@ -172,10 +174,10 @@ class TwoForAmount(GroupPriceOffer):
 
 | Commit | Mensagem | Correção |
 |---|---|---|
-| 4.7 | `fix(DEF-01): cobra a sobra do 2 por valor a preço cheio` | **Apagar** a sobrescrita de `number_of_groups` em `TwoForAmount`. O "2 por valor" passa a usar a divisão inteira da classe base, como as outras ofertas por grupo |
-| 4.8 | `fix(DEF-02): cobra a fração restante nas ofertas por grupo` | Uma linha no algoritmo comum: `remainder = quantity - number_of_groups * self.group_size()`. A correção vale para as três ofertas de uma vez |
+| 4.7 (`a16de14`) | `fix(DEF-01): cobra a sobra do 2 por valor a preço cheio` | **Apagar** a sobrescrita de `number_of_groups` em `TwoForAmount`. O "2 por valor" passa a usar a divisão inteira da classe base, como as outras ofertas por grupo |
+| 4.8 (`d06abcc`) | `fix(DEF-02): cobra a fração restante nas ofertas por grupo` | Uma linha no algoritmo comum: `remainder = quantity - number_of_groups * self.group_size()`. A correção vale para as três ofertas de uma vez |
 
-As duas correções ficam na branch `fix/defeitos-legado`, criada depois do merge da refatoração (decisão D3).
+As duas correções foram feitas na branch `fix/defeitos-legado`, criada depois do merge da refatoração (decisão D3).
 
 ### 3.3 DEF-03: busca por nome no contrato do catálogo
 
@@ -187,7 +189,7 @@ As duas correções ficam na branch `fix/defeitos-legado`, criada depois do merg
 
 | Commit | Mensagem |
 |---|---|
-| 4.9 | `fix(DEF-03): busca de produto por nome via contrato do catálogo` |
+| 4.9 (`11c4b76`) | `fix(DEF-03): busca de produto por nome via contrato do catálogo` |
 
 A interface pública `Teller.product_with_name(name)` continua igual. O teste de contrato `test_product_with_name_devolve_o_produto_ou_none` continua passando sem alteração.
 
@@ -199,10 +201,10 @@ As correções alteram **7 casos de teste**, de propósito. Todos os outros test
 
 | Teste | Caso | Antes (legado) | Depois (corrigido) | Defeito |
 |---|---|---|---|---|
-| `test_dois_por_valor_com_quantidade_impar_defeito_legado` → renomear para `test_dois_por_valor_com_quantidade_impar_cobra_sobra_a_preco_cheio` | 3 un. | desconto +2,50; total 32,50 | desconto −5,00; total 25,00 | DEF-01 |
+| `test_dois_por_valor_com_quantidade_impar_defeito_legado` (removido) → `test_dois_por_valor_com_quantidade_impar_cobra_sobra_a_preco_cheio` (`test_defeitos_corrigidos.py`) | 3 un. | desconto +2,50; total 32,50 | desconto −5,00; total 25,00 | DEF-01 |
 | | 5 un. | −2,50; total 47,50 | −10,00; total 40,00 | DEF-01 |
 | | 7 un. | −7,50; total 62,50 | −15,00; total 55,00 | DEF-01 |
-| `test_promocao_por_grupo_com_quantidade_fracionaria_legado` → renomear para `test_promocao_por_grupo_cobra_a_fracao_restante` | 3 por 2, 2,9 kg | 0,00; total 5,80 | **sem mudança** | — |
+| `test_promocao_por_grupo_com_quantidade_fracionaria_legado` (removido) → `test_promocao_por_grupo_cobra_a_fracao_restante` (`test_defeitos_corrigidos.py`) | 3 por 2, 2,9 kg | 0,00; total 5,80 | **sem mudança** | — |
 | | 3 por 2, 3,5 kg | −3,00; total 4,00 | −2,00; total 5,00 | DEF-02 |
 | | 2 por 3,00, 2,5 kg | −2,00; total 3,00 | −1,00; total 4,00 | DEF-02 |
 | | 5 por 8,00, 5,5 kg | −3,00; total 8,00 | −2,00; total 9,00 | DEF-02 |
@@ -216,9 +218,11 @@ As correções alteram **7 casos de teste**, de propósito. Todos os outros test
 
 Esses valores foram conferidos executando as duas versões do cálculo, a legada e a corrigida, sobre os mesmos carrinhos. Os casos com quantidades inteiras e o "2 por valor" com quantidade par deram resultados idênticos nas duas versões.
 
+Os testes do comportamento correto foram criados antes das correções, marcados com `xfail(strict=True)` (log [`02_pytest_antes_da_refatoracao.log`](evidencias/testes/02_pytest_antes_da_refatoracao.log): 7 `xfail`). Cada commit `fix:` removeu a marcação do seu defeito e apagou o teste legado correspondente.
+
 **Evidência de antes e depois:**
 - O log [`pytest_antes_ubuntu.log`](evidencias/pytest_antes_ubuntu.log) registra o comportamento legado, com os valores defeituosos fixados.
-- O log da suíte depois das correções deve ser salvo em `docs/evidencias/testes/`.
+- O log [`04_pytest_apos_correcoes.log`](evidencias/testes/04_pytest_apos_correcoes.log) registra a suíte depois das três correções: 80 testes passando e nenhum `xfail`.
 - O diff de cada commit `fix:` mostra exatamente quais valores esperados mudaram.
 
 ---
@@ -250,6 +254,6 @@ Os pontos abaixo foram analisados e mantidos como estão. Cada um tem a justific
 
 | Defeito | Requisito relacionado | Risco do [plano de contingência](plano_contingencia.md#4-riscos) | Teste | Commit |
 |---|---|---|---|---|
-| DEF-01 | RF05 (ofertas por grupo): critério [DEF-01] do "2 por valor" | R03 (aplicação incorreta dos descontos); R10 (correção além do previsto) | `test_dois_por_valor_com_quantidade_impar_cobra_sobra_a_preco_cheio` | 4.7 |
-| DEF-02 | RF03 (valor = preço × quantidade) e RF05: critério [DEF-02] da fração nas ofertas por grupo | R02 (cálculo incorreto dos valores); R03 (aplicação incorreta dos descontos); R10 (correção além do previsto) | `test_promocao_por_grupo_cobra_a_fracao_restante`, `test_recibo_impresso_com_todas_as_modalidades_de_oferta` | 4.8 |
-| DEF-03 | RNF01 (manutenção sem dependências desnecessárias): critério [DEF-03]; interface `Teller.product_with_name` | R10 (correção além do previsto); R13 (quebra de interface) | `test_product_with_name_funciona_com_qualquer_catalogo_do_contrato`, `test_product_with_name_devolve_o_produto_ou_none` | 4.9 |
+| DEF-01 | RF05 (ofertas por grupo): critério [DEF-01] do "2 por valor" | R03 (aplicação incorreta dos descontos); R10 (correção além do previsto) | `test_dois_por_valor_com_quantidade_impar_cobra_sobra_a_preco_cheio` | 4.7 (`a16de14`) |
+| DEF-02 | RF03 (valor = preço × quantidade) e RF05: critério [DEF-02] da fração nas ofertas por grupo | R02 (cálculo incorreto dos valores); R03 (aplicação incorreta dos descontos); R10 (correção além do previsto) | `test_promocao_por_grupo_cobra_a_fracao_restante`, `test_recibo_impresso_com_todas_as_modalidades_de_oferta` | 4.8 (`d06abcc`) |
+| DEF-03 | RNF01 (manutenção sem dependências desnecessárias): critério [DEF-03]; interface `Teller.product_with_name` | R10 (correção além do previsto); R13 (quebra de interface) | `test_product_with_name_funciona_com_qualquer_catalogo_do_contrato`, `test_product_with_name_devolve_o_produto_ou_none` | 4.9 (`11c4b76`) |

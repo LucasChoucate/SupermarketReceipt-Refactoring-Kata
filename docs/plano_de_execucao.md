@@ -2,7 +2,7 @@
 
 Este documento organiza o trabalho que falta para cumprir o edital. Ele está dividido em 10 fases, em ordem. Cada fase indica o passo do edital que cumpre, o que fazer, quais arquivos mudam e como saber que terminou.
 
-> **Situação atual.** As Fases 0 a 3 estão integradas na `develop`: documentos de análise, linha de base de segurança e testes de caracterização (64 testes e 7 `xfail` dos defeitos). A refatoração da Fase 4 (parte 4A) está concluída na branch `refactor/politicas-desconto`, com 79 testes passando e os 7 `xfail` intactos. Ainda faltam as correções dos defeitos (4B), os combos, a segurança "depois", o README e a apresentação.
+> **Situação atual.** As Fases 0 a 3 e a refatoração da Fase 4 (parte 4A) estão integradas na `develop`. As correções dos três defeitos (parte 4B) estão concluídas na branch `fix/defeitos-legado`, com 80 testes passando e nenhum `xfail`. Ainda faltam os combos, a segurança "depois", o README e a apresentação.
 
 ---
 
@@ -420,9 +420,11 @@ Em todos os commits desta branch, a suíte passa, os 7 testes `xfail` continuam 
 Cada commit `fix:` deve citar na mensagem o ID do defeito e o link para o [registro de defeitos](registro_de_defeitos.md).
 
 **4B pronta quando:**
-- [ ] só os 7 casos listados no registro de defeitos mudaram de valor esperado;
-- [ ] não resta nenhum `xfail`;
-- [ ] o log da suíte depois das correções está salvo em `docs/evidencias/testes/04_pytest_apos_correcoes.log`.
+- [x] só os 7 casos listados no registro de defeitos mudaram de valor esperado;
+- [x] não resta nenhum `xfail`;
+- [x] o log da suíte depois das correções está salvo em [`04_pytest_apos_correcoes.log`](evidencias/testes/04_pytest_apos_correcoes.log) (80 passed), com a cobertura em [`04_cobertura_apos_correcoes.txt`](evidencias/testes/04_cobertura_apos_correcoes.txt) (99% de ramos).
+
+Commits: `a16de14` (DEF-01), `d06abcc` (DEF-02) e `11c4b76` (DEF-03).
 
 ---
 
