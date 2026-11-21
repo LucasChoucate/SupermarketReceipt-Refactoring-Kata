@@ -10,7 +10,7 @@ Este documento organiza o trabalho que falta para cumprir o edital. Ele está di
 
 - [Regras gerais](#regras-gerais)
 - [Política de convivência entre combos e ofertas](#política-de-convivência-entre-combos-e-ofertas)
-- [Decisões registradas (D1 a D6)](#decisões-registradas-d1-a-d6)
+- [Decisões registradas (D1 a D7)](#decisões-registradas-d1-a-d7)
 - [Fase 0: Organização do repositório](#fase-0-organização-do-repositório)
 - [Fase 1: Corrigir os documentos de análise](#fase-1-corrigir-os-documentos-de-análise)
 - [Fase 2: Refazer a linha de base de segurança](#fase-2-refazer-a-linha-de-base-de-segurança)
@@ -112,7 +112,7 @@ Comparar só os percentuais também engana. O combo dá 10% nos **dois** produto
 
 ---
 
-## Decisões registradas (D1 a D6)
+## Decisões registradas (D1 a D7)
 
 Estas decisões devem constar no plano de contingência e no README.
 
@@ -124,6 +124,7 @@ Estas decisões devem constar no plano de contingência e no README.
 | D4 | Representação do combo no recibo | Um `Discount` por produto do combo, com a descrição `"combo 10% off"` | Não muda a classe `Discount` nem o `ReceiptPrinter` |
 | D5 | API do combo | Nova e aditiva: `teller.add_bundle_offer(products, percent=10.0)` | Não altera o enum `SpecialOfferType`, o `teller.offers` nem o `add_special_offer`, que são protegidos por testes de contrato |
 | D6 | Dois combos disputando o mesmo produto | Vence a ordem de cadastro | Simples, determinístico e testável |
+| D7 | Uso do `approvaltests` | Não usar e remover na Fase 7, junto com o `pytest-approvaltests` e o `tests/approvaltests_config.json` | Nenhum teste usa a biblioteca. A suíte de caracterização já demonstra a preservação de comportamento com 99% de cobertura de ramos e recibos de referência fixados no próprio teste. A remoção reduz a superfície de dependências (seção 8 do roteiro: evitar dependências desnecessárias) |
 
 **Sobre os 10%:** o edital define a regra dos 10% como obrigatória, e combos incorretos custam −2,0. O percentual pode ser um parâmetro com padrão de 10%, o que demonstra extensibilidade, mas todos os requisitos e testes usam 10%. A validação de "proporcionalidade mínima" (RF18) não deve ser implementada, porque faria o `add_special_offer` rejeitar ofertas que o legado aceita.
 
@@ -290,13 +291,20 @@ Registrar em `docs/seguranca_antes_depois.md`:
 
 > **Edital:** Passo 6 | **Branch:** `test/caracterizacao-complemento`
 
-- [ ] **Teste "carrinho sem combos = legado":** fixar o recibo impresso de alguns carrinhos variados (sem ofertas, com cada tipo de oferta, com produto por peso). Esse teste será repetido depois com combos cadastrados para outros produtos. **Não usem** nesses carrinhos os cenários dos defeitos ("2 por valor" com quantidade ímpar e oferta por grupo ativada com quantidade fracionária). Esses cenários já têm testes próprios, e assim o teste continua válido depois das correções.
-- [ ] **Revisar o teste de contrato do enum** [`test_tipos_de_oferta_existentes_e_seus_valores`](../python_pytest/tests/test_comportamento_legado.py). Ele compara com `==` e exige exatamente 4 membros. Se a decisão D5 for seguida, pode ficar como está. Para ter margem de segurança, troquem a comparação por "os 4 membros existentes continuam com os mesmos valores".
-- [ ] **Decidir sobre o `approvaltests`:**
+> **Concluída.** A suíte passou de 57 para **64 testes passando e 7 `xfail`**, com 99% de cobertura de ramos no `src/`. Evidências: [`02_pytest_antes_da_refatoracao.log`](evidencias/testes/02_pytest_antes_da_refatoracao.log) e [`02_cobertura_antes.txt`](evidencias/testes/02_cobertura_antes.txt).
+
+- [x] **Teste "carrinho sem combos = legado":** fixar o recibo impresso de alguns carrinhos variados (sem ofertas, com cada tipo de oferta, com produto por peso). Esse teste será repetido depois com combos cadastrados para outros produtos. **Não usem** nesses carrinhos os cenários dos defeitos ("2 por valor" com quantidade ímpar e oferta por grupo ativada com quantidade fracionária). Esses cenários já têm testes próprios, e assim o teste continua válido depois das correções.
+  - Feito em [`test_recibos_de_referencia.py`](../python_pytest/tests/test_recibos_de_referencia.py), com 7 cenários. Os carrinhos não usam `shampoo` nem `condicionador`, para que na Fase 6 o teste seja repetido com um combo desses dois produtos cadastrado (cenário 15).
+- [x] **Revisar o teste de contrato do enum** [`test_tipos_de_oferta_existentes_e_seus_valores`](../python_pytest/tests/test_comportamento_legado.py). Ele compara com `==` e exige exatamente 4 membros. Se a decisão D5 for seguida, pode ficar como está. Para ter margem de segurança, troquem a comparação por "os 4 membros existentes continuam com os mesmos valores".
+  - A comparação passou a ser de subconjunto (`<=`): membros novos são aceitos, mas remover ou renumerar um membro existente continua quebrando o teste.
+- [x] **Decidir sobre o `approvaltests`:**
   - **Opção 1:** usá-lo para um *golden master*, com dezenas de carrinhos gerados e os recibos aprovados antes da refatoração. É uma evidência forte de "antes e depois".
   - **Opção 2:** removê-lo na Fase 7, porque hoje nenhum teste o usa.
-- [ ] **Criar os testes do comportamento correto para cada defeito**, marcados com `@pytest.mark.xfail(strict=True, reason="DEF-0X")`. Eles falham enquanto o defeito existe, o que serve de evidência do defeito, e são liberados nos commits `fix:` da Fase 4. Os valores esperados estão na seção 4 do [registro de defeitos](registro_de_defeitos.md).
-- [ ] **Gerar a cobertura de baseline:**
+  - **Decisão: opção 2** (registrada como D7 no [plano de contingência](plano_contingencia.md#8-decisões-registradas)). A suíte já demonstra a preservação de comportamento com 99% de cobertura de ramos e os recibos de referência fixados no próprio teste, legíveis no diff dos PRs. O `approvaltests` não é usado por nenhum teste e traz a maior parte das dependências transitivas do projeto. A remoção é a ação nº 2 do [`seguranca_antes_depois.md`](seguranca_antes_depois.md#7-ações-planejadas) e é executada na Fase 7.
+- [x] **Criar os testes do comportamento correto para cada defeito**, marcados com `@pytest.mark.xfail(strict=True, reason="DEF-0X")`. Eles falham enquanto o defeito existe, o que serve de evidência do defeito, e são liberados nos commits `fix:` da Fase 4. Os valores esperados estão na seção 4 do [registro de defeitos](registro_de_defeitos.md).
+  - Feito em [`test_defeitos_corrigidos.py`](../python_pytest/tests/test_defeitos_corrigidos.py): 3 casos do DEF-01, 3 do DEF-02 e 1 do DEF-03, este com `raises=AttributeError`. Os valores foram conferidos aplicando as correções em uma cópia descartável do código: os 7 testes passam, os recibos de referência não mudam e só os 7 casos legados previstos no registro de defeitos quebram.
+  - Em cada commit `fix:` da Fase 4: remover o `xfail` do teste do defeito e apagar o teste legado correspondente em `test_comportamento_legado.py`.
+- [x] **Gerar a cobertura de baseline:**
   ```bash
   cd python_pytest
   python -m coverage run --branch --source=src -m pytest
@@ -467,7 +475,7 @@ Evidências a salvar em `docs/evidencias/testes/`:
 
 > **Edital:** Passo 11 | **Barema:** restante de 1,0 | **Branch:** `chore/seguranca-depois`
 
-- [ ] **Remover `approvaltests` e `pytest-approvaltests`**, se não foram usados na Fase 3, junto com o `tests/approvaltests_config.json`.
+- [ ] **Remover `approvaltests` e `pytest-approvaltests`** (decisão D7, tomada na Fase 3), junto com o `tests/approvaltests_config.json`.
 - [ ] **Fixar as versões no `requirements.txt`** (por exemplo, `pytest==9.2.0`, `coverage==7.17.3`), para a instalação ser reproduzível (RNF08).
 - [ ] **Rodar os mesmos comandos da Fase 2** sobre a `develop`, com saída em `docs/evidencias/seguranca/depois/`.
 - [ ] **Montar o comparativo de antes e depois** em `docs/seguranca_antes_depois.md`:
@@ -526,7 +534,7 @@ Evidências a salvar em `docs/evidencias/testes/`:
   - [ ] como rodar os testes e a cobertura;
   - [ ] como rodar o Bandit, o pip-audit e o Safety, com o ambiente separado;
   - [ ] estrutura de pastas;
-  - [ ] decisões arquiteturais (D1 a D6) e padrões adotados, com links para a pasta `docs/`;
+  - [ ] decisões arquiteturais (D1 a D7) e padrões adotados, com links para a pasta `docs/`;
   - [ ] seção "Defeitos corrigidos", resumindo DEF-01 a DEF-03 e apontando para o registro de defeitos.
 - [ ] **Testar o README do zero** em uma máquina ou pasta limpa. É o critério "execução independente" do barema.
 - [ ] **Completar a coluna de rastreabilidade** dos requisitos (RF → implementação → teste → evidência).
