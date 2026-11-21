@@ -115,7 +115,7 @@ Nomes, assinaturas e tipos de retorno destas interfaces não podem mudar. Elas s
 | `ShoppingCart.add_item(product)` e `add_item_quantity(product, quantity)` | Todos os testes (início de toda compra) |
 | `ShoppingCart.items`, uma lista de `ProductQuantity` | `Teller` (montagem dos itens do recibo) e testes |
 | `ShoppingCart.product_quantities`, um dicionário produto → quantidade | Testes |
-| `ShoppingCart.handle_offers(receipt, offers, catalog)` | `Teller`. Depois da Fase 4.5, passa a ser uma fachada que delega ao `DiscountEngine` |
+| `ShoppingCart.handle_offers(receipt, offers, catalog)` | Teste de contrato e possíveis chamadores externos. Até a Fase 4.5 era usado pelo `Teller`; a partir dela, é uma fachada que delega ao `DiscountEngine`, e o `Teller` usa o engine diretamente |
 | `Teller(catalog)` | Testes e fluxo de checkout |
 | `Teller.add_special_offer(offer_type, product, argument)` | Testes de promoção |
 | `Teller.offers`, um dicionário produto → `Offer` | Testes de contrato |
@@ -169,8 +169,8 @@ Cada etapa começa somente quando a anterior cumpriu a condição para avançar.
 |---|---|---|---|---|
 | 1 | Criar os testes de caracterização (**concluída**) | Registrar o comportamento atual do sistema, incluindo os defeitos. | 57 testes passando e 99% de cobertura de ramos em `src/` | R01, R02, R03, R09, R11, R12 |
 | 2 | Complementar a caracterização (Fase 3) | Fixar recibos de carrinhos sem combos, criar os testes `xfail(strict=True)` dos defeitos e salvar a cobertura de baseline. | Suíte passando, `xfail` falhando como esperado, cobertura salva em `evidencias/testes/` | R10, R13 |
-| 3 | Refatoração estrutural (Fases 4.1 a 4.6) | Distribuir as responsabilidades promocionais com Strategy, Template Method e Factory. `handle_offers` vira uma fachada para o `DiscountEngine`, e as políticas passam a informar as unidades consumidas. | Suíte de caracterização passando **sem nenhuma alteração** em cada commit, e `handle_offers` sem `if` por tipo de oferta | R03, R13 |
-| 4 | Correção dos defeitos (Fases 4.7 a 4.9) | Corrigir DEF-01, DEF-02 e DEF-03, um commit `fix:` por defeito. | Só os 7 casos previstos mudaram de valor esperado, e não resta nenhum `xfail` | R03, R10 |
+| 3 | Refatoração estrutural (Fase 4A, branch `refactor/politicas-desconto`) | Distribuir as responsabilidades promocionais com Strategy, Template Method e Simple Factory. `handle_offers` vira uma fachada para o `DiscountEngine`, e as políticas passam a informar as unidades consumidas. Inclui um teste de caracterização complementar (quantidade zero), testes unitários dos padrões e docstrings. | Suíte de caracterização passando **sem nenhuma alteração** em cada commit, os 7 `xfail` ainda falhando e `handle_offers` sem `if` por tipo de oferta | R03, R13 |
+| 4 | Correção dos defeitos (Fase 4B, branch `fix/defeitos-legado`, criada após o merge da etapa 3) | Corrigir DEF-01, DEF-02 e DEF-03, um commit `fix:` por defeito. | Só os 7 casos previstos mudaram de valor esperado, e não resta nenhum `xfail` | R03, R10 |
 | 5 | Implementar os combos (Fase 5) | Incluir `BundleOffer`, `Teller.add_bundle_offer` e a escolha entre as ordens C e B no `DiscountEngine`. | Suíte inteira passando, com `teller.offers` e `SpecialOfferType` inalterados | R04, R05, R06, R07, R08 |
 | 6 | Testes de regressão e dos combos (Fase 6) | Cobrir os cenários de combo, de convivência com ofertas e de "nunca encarece", e repetir a caracterização com combos cadastrados para outros produtos. | Suíte passando, logs e cobertura "depois" salvos em `evidencias/testes/` | R04 a R08, R11, R12, R13 |
 | 7 | Reavaliação de segurança (Fase 7) | Rodar Bandit, pip-audit e Safety sobre a versão final e comparar com a linha de base. | Comparativo de antes e depois registrado, com riscos remanescentes | (RNF07) |
@@ -206,7 +206,7 @@ O controle de versão é feito com Git, preservando o código original e registr
 
 **Pontos de restauração e fluxo de trabalho:**
 - **Versão estável de referência:** a tag `legado-baseline` (commit `58df732`), publicada no repositório remoto. Ela marca o código legado com a suíte de caracterização completa.
-- **Branches:** a `develop` concentra o trabalho integrado. Cada fase é feita em uma branch própria, derivada da `develop` (por exemplo, `refactor/politicas-desconto` e `feat/combos`).
+- **Branches:** a `develop` concentra o trabalho integrado. Cada fase é feita em uma branch própria, derivada da `develop` (por exemplo, `refactor/politicas-desconto` e `feat/combos`). A refatoração e as correções de defeitos ficam em branches separadas (`refactor/politicas-desconto` e `fix/defeitos-legado`), para que o PR de correções possa ser revertido sem desfazer a refatoração.
 - **Integração:** toda integração com a `develop` é feita por **pull request**, com a suíte passando. Nenhum commit é feito diretamente na `develop` ou na `main`.
 - **Commits:** seguem o padrão Conventional Commits (`refactor:`, `fix:`, `feat:`, `test:`, `docs:`, `chore:`), e a suíte inteira passa em cada um. As correções de defeitos ficam em commits `fix:` isolados, para que cada uma possa ser revertida sozinha.
 
@@ -228,7 +228,7 @@ O controle de versão é feito com Git, preservando o código original e registr
 |---|---|---|---|
 | D1 | Convivência entre combo e oferta | O melhor dos dois, com empate para as ofertas (ordem C), comparando em centavos | Nunca encarece, evita duplicidade e mantém as ofertas preexistentes quando o combo não traz ganho, em linha com o "manter o comportamento anterior" do edital |
 | D2 | Defeitos confirmados do legado: DEF-01 ("2 por valor" com quantidade ímpar cobra a mais), DEF-02 (fração gratuita nas ofertas por grupo) e DEF-03 (`product_with_name` fora do contrato do catálogo) | Corrigir todos | DEF-01 cobra do cliente mais do que sem a oferta, DEF-02 concede desconto maior que o anunciado, e DEF-03 quebra com qualquer catálogo real. Detalhes no [registro de defeitos](registro_de_defeitos.md) |
-| D3 | Momento e forma das correções | Depois da refatoração estrutural, um commit `fix:` por defeito, cada um precedido de um teste `xfail(strict=True)` do comportamento correto | Separa mudança de estrutura de mudança de comportamento. Com o Template Method, DEF-01 e DEF-02 são corrigidos em um único lugar, e cada correção pode ser revertida isoladamente |
+| D3 | Momento e forma das correções | Depois da refatoração estrutural, em uma branch própria (`fix/defeitos-legado`) criada após o merge da refatoração, com um commit `fix:` por defeito, cada um precedido de um teste `xfail(strict=True)` do comportamento correto | Separa mudança de estrutura de mudança de comportamento. Com o Template Method, DEF-01 e DEF-02 são corrigidos em um único lugar, e cada correção pode ser revertida isoladamente |
 | D4 | Representação do combo no recibo | Um `Discount` por produto do combo, com a descrição `combo 10% off` | Não muda a classe `Discount` nem o `ReceiptPrinter` |
 | D5 | API do combo | Nova e aditiva: `teller.add_bundle_offer(products, percent=10.0)` | Não altera o enum `SpecialOfferType`, o `teller.offers` nem o `add_special_offer`, que são protegidos por testes de contrato |
 | D6 | Dois combos disputando o mesmo produto | Vence a ordem de cadastro | Simples, determinístico e testável |

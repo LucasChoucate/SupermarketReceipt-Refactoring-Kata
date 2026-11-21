@@ -136,7 +136,7 @@ def product_with_name(self, name):
 
 ### 3.1 Princípios
 
-1. **Refatorar primeiro, corrigir depois.** As Fases 4.1 a 4.6 do plano de execução mudam só a estrutura, e todos os testes de caracterização continuam passando sem alteração. Isso prova que a refatoração não mudou comportamento. As correções vêm em seguida, em commits separados.
+1. **Refatorar primeiro, corrigir depois.** A Fase 4A do plano de execução (branch `refactor/politicas-desconto`) muda só a estrutura, e todos os testes de caracterização continuam passando sem alteração. Isso prova que a refatoração não mudou comportamento. As correções vêm em seguida, na Fase 4B (branch `fix/defeitos-legado`), em commits separados.
 2. **Um commit `fix:` por defeito**, com o ID do defeito na mensagem. Isso facilita a revisão e permite reverter cada correção isoladamente.
 3. **Teste antes da correção.** Para cada defeito:
    1. Criar o teste do comportamento **correto**, marcado com `@pytest.mark.xfail(strict=True, reason="DEF-0X")`. Ele falha, o que prova que o defeito existe.
@@ -147,22 +147,35 @@ def product_with_name(self, name):
 
 ### 3.2 DEF-01 e DEF-02: correção na classe `GroupPriceOffer`
 
-Depois da refatoração (Fase 4.3), o algoritmo das ofertas por grupo existe em **um único lugar**, a classe base `GroupPriceOffer` (Template Method). As duas correções são feitas ali:
+Depois da refatoração (Fase 4.3), o algoritmo das ofertas por grupo existe em **um único lugar**, o método `apply` da classe base `GroupPriceOffer` (Template Method). Durante a refatoração, os dois defeitos foram **preservados de forma isolada**, para que cada correção fosse uma mudança mínima:
 
 ```python
-# depois da correção (GroupPriceOffer.apply)
-groups = int(quantity) // self.group_size()          # DEF-01: divisão inteira
-if groups == 0:
-    return PolicyResult([], {})
-remainder = quantity - groups * self.group_size()    # DEF-02: a sobra inclui a fração
-price_with_offer = groups * self.group_price(unit_price) + remainder * unit_price
-discount_amount = quantity * unit_price - price_with_offer
+# src/discount_policies.py, antes das correções (fim da Fase 4A)
+class GroupPriceOffer(DiscountPolicy):
+    def apply(self, available, catalog):
+        ...
+        number_of_groups = self.number_of_groups(quantity_as_int)
+        # DEF-02 (legacy): the remainder ignores the fraction of products sold by weight.
+        remainder = quantity_as_int % self.group_size()
+        price_with_offer = number_of_groups * self.group_price(unit_price) + remainder * unit_price
+        ...
+
+    def number_of_groups(self, quantity_as_int):
+        return quantity_as_int // self.group_size()     # divisão inteira (correta)
+
+
+class TwoForAmount(GroupPriceOffer):
+    def number_of_groups(self, quantity_as_int):
+        # DEF-01 (legacy): real division ("/") instead of integer division ("//").
+        return quantity_as_int / self.group_size()
 ```
 
-| Commit | Mensagem | Escopo |
+| Commit | Mensagem | Correção |
 |---|---|---|
-| 4.7 | `fix(DEF-01): cobra a sobra do 2 por valor a preço cheio` | Divisão inteira no cálculo de grupos |
-| 4.8 | `fix(DEF-02): cobra a fração restante nas ofertas por grupo` | Sobra calculada com a quantidade real |
+| 4.7 | `fix(DEF-01): cobra a sobra do 2 por valor a preço cheio` | **Apagar** a sobrescrita de `number_of_groups` em `TwoForAmount`. O "2 por valor" passa a usar a divisão inteira da classe base, como as outras ofertas por grupo |
+| 4.8 | `fix(DEF-02): cobra a fração restante nas ofertas por grupo` | Uma linha no algoritmo comum: `remainder = quantity - number_of_groups * self.group_size()`. A correção vale para as três ofertas de uma vez |
+
+As duas correções ficam na branch `fix/defeitos-legado`, criada depois do merge da refatoração (decisão D3).
 
 ### 3.3 DEF-03: busca por nome no contrato do catálogo
 
@@ -229,7 +242,7 @@ Os pontos abaixo foram analisados e mantidos como estão. Cada um tem a justific
 | Oferta mal configurada (preço do grupo maior que o preço cheio, como "2 por R$ 25" com unidade a R$ 10) | Gera desconto positivo | O cálculo segue a oferta cadastrada. Validar o cadastro mudaria o contrato de `add_special_offer` e está fora do escopo |
 | Uso de `float` para valores monetários | Possível imprecisão em centavos | Nenhum caso de erro foi observado nos testes, e a impressão arredonda para 2 casas. Fica registrado como **risco remanescente** (RNF09) |
 | `ShoppingCart.items` devolve a lista interna | Quem chama pode alterar o carrinho por fora | É uma fragilidade de encapsulamento, sem efeito observado nos valores. Fica registrada no diagnóstico como ponto de melhoria |
-| Quantidade zero ou negativa é aceita | É incluída no carrinho e no recibo | Não há regra de negócio definida para o caso. Criar uma validação mudaria o comportamento sem requisito que a justifique |
+| Quantidade zero ou negativa é aceita | É incluída no carrinho e no recibo. Com quantidade zero, o desconto percentual gera uma linha de 0,00, e as ofertas por grupo não geram desconto | Não há regra de negócio definida para o caso. Criar uma validação mudaria o comportamento sem requisito que a justifique. O comportamento com quantidade zero está fixado em `test_produto_com_quantidade_zero` |
 
 ---
 
