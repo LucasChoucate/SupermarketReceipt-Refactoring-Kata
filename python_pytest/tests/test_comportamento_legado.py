@@ -397,13 +397,21 @@ def test_recibo_impresso_so_detalha_quantidade_diferente_de_um(teller, escova):
 # Contratos públicos que devem permanecer compatíveis 
 
 def test_tipos_de_oferta_existentes_e_seus_valores():
-    assert {t.name: t.value for t in SpecialOfferType} == {
+    """Os membros atuais continuam existindo com os mesmos valores.
+
+    A comparação é de subconjunto (<=), e não de igualdade: novos membros
+    não quebram o contrato, mas remover ou renumerar um membro existente, sim.
+    """
+    tipos_de_oferta = {t.name: t.value for t in SpecialOfferType}
+    unidades = {u.name: u.value for u in ProductUnit}
+
+    assert {
         "THREE_FOR_TWO": 1,
         "TEN_PERCENT_DISCOUNT": 2,
         "TWO_FOR_AMOUNT": 3,
         "FIVE_FOR_AMOUNT": 4,
-    }
-    assert {u.name: u.value for u in ProductUnit} == {"EACH": 1, "KILO": 2}
+    }.items() <= tipos_de_oferta.items()
+    assert {"EACH": 1, "KILO": 2}.items() <= unidades.items()
 
 
 def test_add_special_offer_guarda_um_offer_com_tipo_produto_e_argumento(teller, escova):
