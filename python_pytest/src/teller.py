@@ -1,9 +1,11 @@
+"""Checkout of purchases."""
 from discount_engine import DiscountEngine
 from model_objects import Offer
 from receipt import Receipt
 
 
 class Teller:
+    """Registers special offers and checks out shopping carts."""
 
     def __init__(self, catalog):
         self.catalog = catalog
@@ -11,9 +13,11 @@ class Teller:
         self._discount_engine = DiscountEngine()
 
     def add_special_offer(self, offer_type, product, argument):
+        """Register an offer for ``product``, replacing any previous one."""
         self.offers[product] = Offer(offer_type, product, argument)
 
     def checks_out_articles_from(self, the_cart):
+        """Return the receipt of ``the_cart`` with prices and discounts."""
         receipt = Receipt()
         for item in the_cart.items:
             unit_price = self.catalog.unit_price(item.product)
@@ -25,4 +29,5 @@ class Teller:
         return receipt
 
     def product_with_name(self, name):
+        """Return the product called ``name``, or None if it does not exist."""
         return self.catalog.products.get(name, None)

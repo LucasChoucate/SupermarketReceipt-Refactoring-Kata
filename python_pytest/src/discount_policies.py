@@ -33,6 +33,7 @@ class PercentageOffer(DiscountPolicy):
         self.percentage = percentage
 
     def apply(self, available, catalog):
+        """Discount the percentage over all available units, consuming them all."""
         quantity = available[self.product]
         unit_price = catalog.unit_price(self.product)
         amount = -quantity * unit_price * self.percentage / 100.0
@@ -51,6 +52,11 @@ class GroupPriceOffer(DiscountPolicy):
         self.product = product
 
     def apply(self, available, catalog):
+        """Template method: charge each complete group at the group price and the rest at full price.
+
+        Subclasses customize the calculation only through the hooks
+        ``group_size``, ``group_price`` and ``description``.
+        """
         quantity = available[self.product]
         quantity_as_int = int(quantity)
         if quantity_as_int < self.group_size():
