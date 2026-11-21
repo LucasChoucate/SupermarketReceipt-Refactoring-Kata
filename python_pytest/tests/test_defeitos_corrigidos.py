@@ -42,8 +42,8 @@ def test_dois_por_valor_com_quantidade_impar_cobra_sobra_a_preco_cheio(
 
 # DEF-02: fração gratuita nas ofertas por grupo
 
-@pytest.mark.xfail(strict=True, reason="DEF-02: a fração que sobra nas ofertas por grupo não é cobrada")
 @pytest.mark.parametrize("oferta, argumento, quantidade, desconto_esperado, total_esperado", [
+    (TRES_POR_DOIS, None, 2.9, 0.0, 5.80),      # parte inteira 2: a oferta não ativa
     (TRES_POR_DOIS, None, 3.5, -2.0, 5.00),     # 3 kg por 2 kg + 0,5 kg a preço cheio
     (DOIS_POR_VALOR, 3.0, 2.5, -1.0, 4.00),     # 2 kg por R$ 3,00 + 0,5 kg a preço cheio
     (CINCO_POR_VALOR, 8.0, 5.5, -2.0, 9.00),    # 5 kg por R$ 8,00 + 0,5 kg a preço cheio
