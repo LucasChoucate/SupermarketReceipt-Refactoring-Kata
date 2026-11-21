@@ -1,7 +1,15 @@
 """Discount policies: one strategy per kind of special offer."""
 from abc import ABC, abstractmethod
+from typing import NamedTuple
 
 from model_objects import Discount, SpecialOfferType
+
+
+class PolicyResult(NamedTuple):
+    """Discounts granted by a policy and the units it consumed."""
+
+    discounts: list
+    consumed: dict
 
 
 class DiscountPolicy(ABC):
@@ -9,10 +17,11 @@ class DiscountPolicy(ABC):
 
     @abstractmethod
     def apply(self, available, catalog):
-        """Return the discounts granted for the quantities in ``available``.
+        """Return a PolicyResult for the quantities in ``available``.
 
         ``available`` maps each product to the quantity still available
-        for discounts. ``catalog`` provides the unit prices.
+        for discounts. ``catalog`` provides the unit prices. The units
+        listed in ``PolicyResult.consumed`` cannot receive another discount.
         """
 
 
@@ -27,7 +36,8 @@ class PercentageOffer(DiscountPolicy):
         quantity = available[self.product]
         unit_price = catalog.unit_price(self.product)
         amount = -quantity * unit_price * self.percentage / 100.0
-        return [Discount(self.product, str(self.percentage) + "% off", amount)]
+        discount = Discount(self.product, str(self.percentage) + "% off", amount)
+        return PolicyResult([discount], {self.product: quantity})
 
 
 class GroupPriceOffer(DiscountPolicy):
@@ -44,14 +54,15 @@ class GroupPriceOffer(DiscountPolicy):
         quantity = available[self.product]
         quantity_as_int = int(quantity)
         if quantity_as_int < self.group_size():
-            return []
+            return PolicyResult([], {})
         unit_price = catalog.unit_price(self.product)
         number_of_groups = self.number_of_groups(quantity_as_int)
         # DEF-02 (legacy): the remainder ignores the fraction of products sold by weight.
         remainder = quantity_as_int % self.group_size()
         price_with_offer = number_of_groups * self.group_price(unit_price) + remainder * unit_price
         discount_amount = quantity * unit_price - price_with_offer
-        return [Discount(self.product, self.description(), -discount_amount)]
+        discount = Discount(self.product, self.description(), -discount_amount)
+        return PolicyResult([discount], {self.product: number_of_groups * self.group_size()})
 
     def number_of_groups(self, quantity_as_int):
         """Number of complete groups in the quantity."""

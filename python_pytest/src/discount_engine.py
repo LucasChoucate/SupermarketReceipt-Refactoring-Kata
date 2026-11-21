@@ -16,7 +16,12 @@ class DiscountEngine:
 
     @staticmethod
     def _apply_in_order(policies, quantities, catalog):
+        """Apply the policies in sequence; each one only sees the units left by the previous ones."""
+        available = dict(quantities)
         discounts = []
         for policy in policies:
-            discounts.extend(policy.apply(quantities, catalog))
+            result = policy.apply(available, catalog)
+            discounts.extend(result.discounts)
+            for product, quantity in result.consumed.items():
+                available[product] -= quantity
         return discounts
