@@ -2,7 +2,7 @@
 
 Este documento organiza o trabalho que falta para cumprir o edital. Ele está dividido em 10 fases, em ordem. Cada fase indica o passo do edital que cumpre, o que fazer, quais arquivos mudam e como saber que terminou.
 
-> **Situação atual.** As etapas 1 a 3 (leitura, execução inicial e diagnóstico), os requisitos, o plano de contingência e os testes de caracterização já foram feitos. A caracterização tem 57 testes passando e 99% de cobertura de ramos no `src/`. Ainda faltam ajustes nos documentos, a refatoração, os combos, a segurança "depois", o README e a apresentação.
+> **Situação atual.** As Fases 0 a 3 estão integradas na `develop`: documentos de análise, linha de base de segurança e testes de caracterização (64 testes e 7 `xfail` dos defeitos). A refatoração da Fase 4 (parte 4A) está concluída na branch `refactor/politicas-desconto`, com 79 testes passando e os 7 `xfail` intactos. Ainda faltam as correções dos defeitos (4B), os combos, a segurança "depois", o README e a apresentação.
 
 ---
 
@@ -120,7 +120,7 @@ Estas decisões devem constar no plano de contingência e no README.
 |---|---|---|---|
 | D1 | Convivência entre combo e oferta | O melhor dos dois, com empate para as ofertas (ordem C), comparando em centavos | Nunca encarece, sem duplicidade, e mantém as ofertas preexistentes quando o combo não traz ganho, em linha com o "manter o comportamento anterior" do edital |
 | D2 | Defeitos confirmados do legado: **DEF-01** ("2 por valor" com quantidade ímpar cobra a mais), **DEF-02** (fração gratuita nas ofertas por grupo) e **DEF-03** (`product_with_name` fora do contrato do catálogo) | **Corrigir todos** | DEF-01 cobra do cliente mais do que sem a oferta; DEF-02 concede desconto maior que o anunciado; DEF-03 quebra com qualquer catálogo real. Detalhes no [registro de defeitos](registro_de_defeitos.md) |
-| D3 | Momento e forma das correções | **Depois da refatoração estrutural**, um commit `fix:` por defeito, cada um precedido de um teste `xfail(strict=True)` do comportamento correto | Separa mudança de estrutura de mudança de comportamento. Com o Template Method, DEF-01 e DEF-02 são corrigidos em um único lugar, e cada correção pode ser revertida isoladamente |
+| D3 | Momento e forma das correções | **Depois da refatoração estrutural**, em uma branch própria (`fix/defeitos-legado`) criada após o merge da refatoração, com um commit `fix:` por defeito, cada um precedido de um teste `xfail(strict=True)` do comportamento correto | Separa mudança de estrutura de mudança de comportamento. Com o Template Method, DEF-01 e DEF-02 são corrigidos em um único lugar, e cada correção pode ser revertida isoladamente |
 | D4 | Representação do combo no recibo | Um `Discount` por produto do combo, com a descrição `"combo 10% off"` | Não muda a classe `Discount` nem o `ReceiptPrinter` |
 | D5 | API do combo | Nova e aditiva: `teller.add_bundle_offer(products, percent=10.0)` | Não altera o enum `SpecialOfferType`, o `teller.offers` nem o `add_special_offer`, que são protegidos por testes de contrato |
 | D6 | Dois combos disputando o mesmo produto | Vence a ordem de cadastro | Simples, determinístico e testável |
@@ -318,7 +318,16 @@ Registrar em `docs/seguranca_antes_depois.md`:
 
 ## Fase 4: Refatoração com padrões de projeto
 
-> **Edital:** Passo 8 | **Barema:** 2,0 (código refatorado) + 2,0 (padrões, SOLID e Clean Code) | **Branch:** `refactor/politicas-desconto`
+> **Edital:** Passo 8 | **Barema:** 2,0 (código refatorado) + 2,0 (padrões, SOLID e Clean Code)
+
+A fase é dividida em **duas branches**, para separar mudança de estrutura de mudança de comportamento (decisão D3):
+
+| Parte | Branch | Conteúdo | Comportamento |
+|---|---|---|---|
+| **4A** | `refactor/politicas-desconto` | Refatoração com padrões de projeto, testes unitários dos padrões e docstrings | Idêntico ao legado |
+| **4B** | `fix/defeitos-legado` | Correção de DEF-01, DEF-02 e DEF-03, um commit por defeito | Mudança intencional, documentada no [registro de defeitos](registro_de_defeitos.md) |
+
+A branch 4B só é criada depois do merge da 4A na `develop`. Assim, o PR de refatoração prova sozinho que nada mudou, e o PR de correções mostra só as mudanças de valor previstas.
 
 ### Padrões adotados
 
@@ -326,70 +335,94 @@ Cada padrão resolve um problema apontado no diagnóstico, o que atende ao crit�
 
 | Padrão | Classe ou função | Problema do diagnóstico que resolve |
 |---|---|---|
-| **Strategy** | `DiscountPolicy` (interface), com `PercentageOffer`, `GroupPriceOffer` e `BundleOffer` | Switch statements, violação do OCP, excesso de responsabilidades no `ShoppingCart` (SRP) |
-| **Template Method** | `GroupPriceOffer`, com as subclasses `ThreeForTwo`, `TwoForAmount` e `FiveForAmount` | **Duplicação** das três fórmulas de grupo |
-| **Factory** | `create_policy(offer)` | Traduzir o `SpecialOfferType` da API pública em estratégia, preservando o `add_special_offer` |
+| **Strategy** | `DiscountPolicy` (interface), com `PercentageOffer` e `GroupPriceOffer`; `BundleOffer` entra na Fase 5 | Switch Statements, violação do OCP, Feature Envy e excesso de responsabilidades no `ShoppingCart` (SRP) |
+| **Template Method** | `GroupPriceOffer.apply`, com os ganchos `group_size`, `group_price` e `description` implementados por `ThreeForTwo`, `TwoForAmount` e `FiveForAmount` | **Duplicação** das três fórmulas de grupo e números mágicos |
+| **Simple Factory** | `create_policy(offer)`, um dicionário de `SpecialOfferType` para a estratégia | Traduzir o `SpecialOfferType` da API pública em estratégia, preservando o `add_special_offer` |
 
-> ⚠️ **Sobre o nome "Factory":** se a fábrica for apenas uma função ou um dicionário, ela é uma *Simple Factory*, não um *Factory Method* do GoF. Chamem pelo nome correto na documentação, ou implementem como uma classe com método de fábrica. A banca pode cobrar essa distinção.
+Os dois padrões exigidos pelo edital são o **Strategy** e o **Template Method**. A fábrica é chamada de *Simple Factory*, e não de *Factory Method* do GoF, porque é uma função com dicionário, e não uma hierarquia de criadores.
 
-### Estrutura proposta
+### Estrutura implementada
+
+```
+src/
+├── discount_policies.py   PolicyResult, DiscountPolicy (Strategy), PercentageOffer,
+│                          GroupPriceOffer (Template Method), ThreeForTwo, TwoForAmount,
+│                          FiveForAmount e create_policy (Simple Factory)
+├── discount_engine.py     DiscountEngine: aplica as políticas em sequência e desconta
+│                          as unidades consumidas por cada uma
+├── shopping_cart.py       só produtos e quantidades; handle_offers vira fachada do engine
+└── teller.py              checkout usa o DiscountEngine diretamente
+```
 
 ```python
 class PolicyResult(NamedTuple):
-    discounts: list[Discount]
-    consumed: dict[Product, float]
+    discounts: list          # descontos concedidos
+    consumed: dict           # produto -> unidades usadas pela política
 
 
 class DiscountPolicy(ABC):                      # Strategy
     @abstractmethod
-    def apply(self, available, catalog) -> PolicyResult: ...
+    def apply(self, available, catalog): ...    # devolve um PolicyResult
 
 
 class GroupPriceOffer(DiscountPolicy):          # Template Method
-    def apply(self, available, catalog):
-        # algoritmo comum: grupos, sobra, desconto e unidades consumidas
+    def apply(self, available, catalog):        # algoritmo comum: grupos, sobra, desconto e consumo
         ...
 
-    @abstractmethod
-    def group_size(self) -> int: ...
+    def number_of_groups(self, quantity_as_int): ...   # gancho com implementação padrão (//)
 
     @abstractmethod
-    def group_price(self, unit_price) -> float: ...
+    def group_size(self): ...
+
+    @abstractmethod
+    def group_price(self, unit_price): ...
+
+    @abstractmethod
+    def description(self): ...
 
 
-class ThreeForTwo(GroupPriceOffer): ...
-class TwoForAmount(GroupPriceOffer): ...
-class FiveForAmount(GroupPriceOffer): ...
-class PercentageOffer(DiscountPolicy): ...      # consome todas as unidades
-
-
-def create_policy(offer: Offer) -> DiscountPolicy:   # Factory
-    ...
+def create_policy(offer):                       # Simple Factory
+    return _POLICY_BY_OFFER_TYPE[offer.offer_type](offer)
 ```
 
-### Commits, nesta ordem
+### 4A: commits da branch `refactor/politicas-desconto`
 
-A suíte deve passar em cada um.
+Em todos os commits desta branch, a suíte passa, os 7 testes `xfail` continuam falhando (os defeitos seguem intactos) e nenhum teste existente é alterado.
 
-| # | Commit | O que muda | Comportamento |
+| # | Commit | O que muda | Testes |
 |---|---|---|---|
-| 4.1 | `refactor: renomeia variáveis e extrai métodos em handle_offers` | `x` → `group_size`, `p` → `product` etc.; um método privado por tipo de oferta | Idêntico |
-| 4.2 | `refactor: introduz DiscountPolicy (Strategy) e PercentageOffer` | Cria `src/discount_policies.py` com a interface `apply(available, catalog) -> PolicyResult` | Idêntico |
-| 4.3 | `refactor: extrai GroupPriceOffer (Template Method)` | Classe base com o algoritmo comum e três subclasses. **Preservar exatamente** as descrições (`"3 for 2"`, `"2 for 15.0"`, `"5 for 40.0"`, `"10.0% off"`) **e os defeitos DEF-01 e DEF-02**, que só são corrigidos nos itens 4.7 e 4.8 | Idêntico |
-| 4.4 | `refactor: adiciona fábrica de políticas a partir de SpecialOfferType` | `create_policy(offer)` | Idêntico |
-| 4.5 | `refactor: move aplicação de descontos para DiscountEngine` | Cria `src/discount_engine.py`, que aplica as políticas em sequência e vai descontando as unidades consumidas. `ShoppingCart.handle_offers(receipt, offers, catalog)` vira uma **fachada** que delega ao engine e mantém o contrato. O `Teller` passa a usar o engine | Idêntico |
-| 4.6 | `refactor: políticas informam unidades consumidas` | Preparação para os combos, ainda sem uso | Idêntico |
-| 4.7 | `fix(DEF-01): cobra a sobra do 2 por valor a preço cheio` | Divisão inteira no cálculo de grupos, em `GroupPriceOffer`. Remover o `xfail` do teste correto e substituir `test_dois_por_valor_com_quantidade_impar_defeito_legado` por `..._cobra_sobra_a_preco_cheio`: 3 un. → R$ 25,00; 5 un. → R$ 40,00; 7 un. → R$ 55,00 | **Mudança intencional** (3 casos) |
-| 4.8 | `fix(DEF-02): cobra a fração restante nas ofertas por grupo` | Sobra calculada com a quantidade real (`quantity - groups * size`). Atualizar `test_promocao_por_grupo_com_quantidade_fracionaria_legado` (3 casos) e o recibo impresso: `5 for 7.5 (maca) -2.45` e `Total: 20.96` | **Mudança intencional** (4 casos) |
-| 4.9 | `fix(DEF-03): busca de produto por nome via contrato do catálogo` | Declarar `product_with_name` em `SupermarketCatalog`, implementar no `FakeCatalog` e fazer o `Teller` delegar ao catálogo. Liberar o teste `test_product_with_name_funciona_com_qualquer_catalogo_do_contrato` | Interface pública inalterada |
-| 4.10 | `docs: adiciona docstrings PEP 257` | Docstrings nas classes e métodos novos | Idêntico |
+| 4.0 | `test: fixa comportamento do legado com quantidade zero` | Teste de caracterização complementar, encontrado durante a refatoração: com quantidade 0, o percentual gera uma linha de 0,00 e as ofertas por grupo não geram desconto. Nenhum teste cobria esse caso | 68 passed, 7 xfailed |
+| 4.1 | `refactor: renomeia variáveis e extrai um método por tipo de oferta` | `x` → `group_size`, `p` → `product`, `number_of_x` → `number_of_groups`, `discount_n` → `discount_amount`; um método privado por oferta. No `Teller`, `pq` e `p` viram `item` | 68 / 7 |
+| 4.2 | `refactor: introduz DiscountPolicy (Strategy) e PercentageOffer` | Cria `src/discount_policies.py` com a interface e a primeira estratégia | 68 / 7 |
+| 4.3 | `refactor: extrai GroupPriceOffer (Template Method) para as ofertas por grupo` | As três fórmulas viram um único algoritmo. **DEF-01 preservado** numa sobrescrita de `number_of_groups` em `TwoForAmount`; **DEF-02 preservado** no cálculo da sobra, marcado com comentário | 68 / 7 |
+| 4.4 | `refactor: cria as políticas a partir de SpecialOfferType com uma Simple Factory` | `create_policy(offer)`. Sai o último `if` por tipo de oferta | 68 / 7 |
+| 4.5 | `refactor: move a aplicação dos descontos para DiscountEngine` | Cria `src/discount_engine.py`. `ShoppingCart.handle_offers(receipt, offers, catalog)` vira uma **fachada** que mantém o contrato. O `Teller` usa o engine diretamente | 68 / 7 |
+| 4.6 | `refactor: políticas informam as unidades consumidas` | `PolicyResult(discounts, consumed)`. O engine trabalha sobre uma cópia das quantidades e desconta o consumo de cada política. Preparação para os combos | 68 / 7 |
+| 4.6b | `test: adiciona testes unitários das políticas de desconto e da fábrica` | `tests/test_politicas_de_desconto.py`: fábrica, consumo de cada estratégia e uma oferta fictícia "4 por 3" criada só com os ganchos do Template Method | 79 / 7 |
+| 4.10 | `docs: adiciona docstrings PEP 257 ao código de produção` | Docstrings em todos os módulos, classes e métodos públicos do `src/`, incluindo o significado de `Offer.argument` por tipo de oferta | 79 / 7 |
+
+- [x] Commits 4.0 a 4.6b e 4.10 aplicados, com a suíte verificada em cada um.
+- [x] Evidências: [`03_pytest_apos_refatoracao.log`](evidencias/testes/03_pytest_apos_refatoracao.log) (79 passed, 7 xfailed) e [`03_cobertura_apos_refatoracao.txt`](evidencias/testes/03_cobertura_apos_refatoracao.txt) (99% de ramos; 100% em `discount_engine.py`, `discount_policies.py` e `shopping_cart.py`).
+
+**4A pronta quando:**
+- [x] nenhum teste existente foi alterado: desde a `develop`, a branch só **acrescenta** testes;
+- [x] os 7 `xfail` continuam falhando;
+- [x] o `handle_offers` não tem mais nenhum `if` por tipo de oferta, e o `shopping_cart.py` não importa mais o `SpecialOfferType`.
+
+### 4B: commits da branch `fix/defeitos-legado`
+
+| # | Commit | O que muda | Testes |
+|---|---|---|---|
+| 4.7 | `fix(DEF-01): cobra a sobra do 2 por valor a preço cheio` | Remove a sobrescrita de `number_of_groups` em `TwoForAmount`: o "2 por valor" passa a usar a divisão inteira padrão do `GroupPriceOffer`. Remove o `xfail` do teste correto e apaga `test_dois_por_valor_com_quantidade_impar_defeito_legado`: 3 un. → R$ 25,00; 5 un. → R$ 40,00; 7 un. → R$ 55,00 | 79 passed, 4 xfailed |
+| 4.8 | `fix(DEF-02): cobra a fração restante nas ofertas por grupo` | Sobra calculada com a quantidade real (`quantity - number_of_groups * group_size`). Remove o `xfail`, move o caso de 2,9 kg para o teste correto, apaga `test_promocao_por_grupo_com_quantidade_fracionaria_legado` e atualiza o recibo impresso: `5 for 7.5 (maca) -2.45` e `Total: 20.96` | 79 / 1 |
+| 4.9 | `fix(DEF-03): busca de produto por nome via contrato do catálogo` | Declara `product_with_name` em `SupermarketCatalog`, implementa no `FakeCatalog` e faz o `Teller` delegar ao catálogo. Remove o último `xfail` | 80 passed |
 
 Cada commit `fix:` deve citar na mensagem o ID do defeito e o link para o [registro de defeitos](registro_de_defeitos.md).
 
-**Pronto quando:**
-- até o item 4.6, os 57 testes passam **sem nenhuma alteração** (prova de refatoração pura);
-- depois dos itens 4.7 a 4.9, só os 7 casos listados no registro de defeitos mudaram de valor esperado, e não restou nenhum `xfail`;
-- o `handle_offers` não tem mais nenhum `if` por tipo de oferta.
+**4B pronta quando:**
+- [ ] só os 7 casos listados no registro de defeitos mudaram de valor esperado;
+- [ ] não resta nenhum `xfail`;
+- [ ] o log da suíte depois das correções está salvo em `docs/evidencias/testes/04_pytest_apos_correcoes.log`.
 
 ---
 
@@ -456,8 +489,8 @@ Criar `python_pytest/tests/test_combos.py`, usando as fixtures existentes: escov
 
 Evidências a salvar em `docs/evidencias/testes/`:
 
-- [ ] `03_pytest_depois.log`
-- [ ] `04_cobertura_depois.txt`
+- [ ] `05_pytest_depois.log`
+- [ ] `05_cobertura_depois.txt`
 - [ ] Tabela comparativa em `docs/evidencias_testes.md`:
 
   | Métrica | Antes | Depois |
