@@ -1,3 +1,4 @@
+from discount_engine import DiscountEngine
 from model_objects import Offer
 from receipt import Receipt
 
@@ -7,6 +8,7 @@ class Teller:
     def __init__(self, catalog):
         self.catalog = catalog
         self.offers = {}
+        self._discount_engine = DiscountEngine()
 
     def add_special_offer(self, offer_type, product, argument):
         self.offers[product] = Offer(offer_type, product, argument)
@@ -18,7 +20,7 @@ class Teller:
             total_price = item.quantity * unit_price
             receipt.add_product(item.product, item.quantity, unit_price, total_price)
 
-        the_cart.handle_offers(receipt, self.offers, self.catalog)
+        self._discount_engine.apply(receipt, the_cart.product_quantities, self.offers, self.catalog)
 
         return receipt
 

@@ -1,4 +1,4 @@
-from discount_policies import create_policy
+from discount_engine import DiscountEngine
 from model_objects import ProductQuantity
 
 
@@ -27,10 +27,5 @@ class ShoppingCart:
             self._product_quantities[product] = quantity
 
     def handle_offers(self, receipt, offers, catalog):
-        for product in self._product_quantities:
-            if product not in offers:
-                continue
-            policy = create_policy(offers[product])
-            for discount in policy.apply(self._product_quantities, catalog):
-                receipt.add_discount(discount)
-
+        """Kept for compatibility: delegates to DiscountEngine."""
+        DiscountEngine().apply(receipt, self._product_quantities, offers, catalog)
