@@ -73,6 +73,25 @@ def test_carrinho_agrega_quantidades_mas_recibo_lista_uma_linha_por_inclusao(tel
     assert recibo.total_price() == pytest.approx(40.00)
 
 
+@pytest.mark.parametrize("oferta, argumento, descricoes_esperadas", [
+    (DEZ_POR_CENTO, 10.0, ["10.0% off"]),   # o percentual gera uma linha de desconto de 0,00
+    (TRES_POR_DOIS, None, []),
+    (DOIS_POR_VALOR, 15.0, []),
+    (CINCO_POR_VALOR, 40.0, []),
+])
+def test_produto_com_quantidade_zero(teller, escova, oferta, argumento, descricoes_esperadas):
+    """O legado aceita quantidade zero no carrinho, e o comportamento é preservado."""
+    teller.add_special_offer(oferta, escova, argumento)
+    carrinho = ShoppingCart()
+    carrinho.add_item_quantity(escova, 0)
+
+    recibo = teller.checks_out_articles_from(carrinho)
+
+    assert [d.description for d in recibo.discounts] == descricoes_esperadas
+    assert total_descontos(recibo) == pytest.approx(0.0)
+    assert recibo.total_price() == pytest.approx(0.0)
+
+
 # Ofertas: escopo de aplicação 
 
 def test_oferta_so_vale_para_o_produto_cadastrado(teller, escova, creme_dental):
