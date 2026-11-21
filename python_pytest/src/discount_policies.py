@@ -133,6 +133,39 @@ class FiveForAmount(GroupPriceOffer):
         return "5 for " + str(self.amount)
 
 
+
+class BundleOffer(DiscountPolicy):
+    """Discount on each complete bundle of products (combo).
+
+    A bundle is complete when the cart has every product of the bundle in
+    the required quantity. The percentage applies only to the units that
+    form complete bundles; the remaining units keep their price.
+    """
+
+    def __init__(self, required, percent=10):
+        """``required`` maps each product of the bundle to the units it needs."""
+        self.required = dict(required)
+        self.percent = percent
+
+    def apply(self, available, catalog):
+        """Discount the complete bundles, consuming the units they use."""
+        number_of_bundles = min(
+            int(available.get(product, 0)) // quantity for product, quantity in self.required.items())
+        if number_of_bundles <= 0:
+            return PolicyResult([], {})
+        discounts = []
+        consumed = {}
+        for product, quantity in self.required.items():
+            units = number_of_bundles * quantity
+            amount = -units * catalog.unit_price(product) * self.percent / 100.0
+            discounts.append(Discount(product, self.description(), amount))
+            consumed[product] = units
+        return PolicyResult(discounts, consumed)
+
+    def description(self):
+        """Text of the discount lines in the receipt."""
+        return "combo " + str(self.percent) + "% off"
+
 # Simple Factory: translates the public SpecialOfferType into a strategy.
 # A new kind of offer only needs a new policy class and one entry here.
 _POLICY_BY_OFFER_TYPE = {
