@@ -63,8 +63,7 @@ class GroupPriceOffer(DiscountPolicy):
             return PolicyResult([], {})
         unit_price = catalog.unit_price(self.product)
         number_of_groups = self.number_of_groups(quantity_as_int)
-        # DEF-02 (legacy): the remainder ignores the fraction of products sold by weight.
-        remainder = quantity_as_int % self.group_size()
+        remainder = quantity - number_of_groups * self.group_size()
         price_with_offer = number_of_groups * self.group_price(unit_price) + remainder * unit_price
         discount_amount = quantity * unit_price - price_with_offer
         discount = Discount(self.product, self.description(), -discount_amount)
@@ -106,10 +105,6 @@ class TwoForAmount(GroupPriceOffer):
     def __init__(self, product, amount):
         super().__init__(product)
         self.amount = amount
-
-    def number_of_groups(self, quantity_as_int):
-        # DEF-01 (legacy): real division ("/") instead of integer division ("//").
-        return quantity_as_int / self.group_size()
 
     def group_size(self):
         return 2

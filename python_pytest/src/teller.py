@@ -30,4 +30,4 @@ class Teller:
 
     def product_with_name(self, name):
         """Return the product called ``name``, or None if it does not exist."""
-        return self.catalog.products.get(name, None)
+        return self.catalog.product_with_name(name)

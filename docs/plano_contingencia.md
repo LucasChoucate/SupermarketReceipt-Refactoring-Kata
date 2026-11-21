@@ -30,6 +30,8 @@ Comportamentos que não devem mudar durante a refatoração. Os invariantes marc
 - **Até a Fase 4.6** (refatoração estrutural), vale o comportamento legado, fixado pelos testes de caracterização.
 - **A partir das Fases 4.7 a 4.9**, vale o comportamento corrigido.
 
+As três correções foram aplicadas na branch `fix/defeitos-legado` (commits `a16de14`, `d06abcc` e `11c4b76`). Desde então, os invariantes marcados como **[corrigido]** são o comportamento vigente, verificado pela suíte.
+
 | # | Invariante | Requisito |
 |---|---|---|
 | 1 | Produtos sem oferta cadastrada são cobrados por quantidade × preço unitário, sem desconto. | RF03 |
@@ -168,9 +170,9 @@ Cada etapa começa somente quando a anterior cumpriu a condição para avançar.
 | Ordem | Alteração | Objetivo | Condição para avançar | Riscos atendidos |
 |---|---|---|---|---|
 | 1 | Criar os testes de caracterização (**concluída**) | Registrar o comportamento atual do sistema, incluindo os defeitos. | 57 testes passando e 99% de cobertura de ramos em `src/` | R01, R02, R03, R09, R11, R12 |
-| 2 | Complementar a caracterização (Fase 3) | Fixar recibos de carrinhos sem combos, criar os testes `xfail(strict=True)` dos defeitos e salvar a cobertura de baseline. | Suíte passando, `xfail` falhando como esperado, cobertura salva em `evidencias/testes/` | R10, R13 |
-| 3 | Refatoração estrutural (Fase 4A, branch `refactor/politicas-desconto`) | Distribuir as responsabilidades promocionais com Strategy, Template Method e Simple Factory. `handle_offers` vira uma fachada para o `DiscountEngine`, e as políticas passam a informar as unidades consumidas. Inclui um teste de caracterização complementar (quantidade zero), testes unitários dos padrões e docstrings. | Suíte de caracterização passando **sem nenhuma alteração** em cada commit, os 7 `xfail` ainda falhando e `handle_offers` sem `if` por tipo de oferta | R03, R13 |
-| 4 | Correção dos defeitos (Fase 4B, branch `fix/defeitos-legado`, criada após o merge da etapa 3) | Corrigir DEF-01, DEF-02 e DEF-03, um commit `fix:` por defeito. | Só os 7 casos previstos mudaram de valor esperado, e não resta nenhum `xfail` | R03, R10 |
+| 2 | Complementar a caracterização (Fase 3) (**concluída**) | Fixar recibos de carrinhos sem combos, criar os testes `xfail(strict=True)` dos defeitos e salvar a cobertura de baseline. | Suíte passando, `xfail` falhando como esperado, cobertura salva em `evidencias/testes/` | R10, R13 |
+| 3 | Refatoração estrutural (Fase 4A, branch `refactor/politicas-desconto`) (**concluída**) | Distribuir as responsabilidades promocionais com Strategy, Template Method e Simple Factory. `handle_offers` vira uma fachada para o `DiscountEngine`, e as políticas passam a informar as unidades consumidas. Inclui um teste de caracterização complementar (quantidade zero), testes unitários dos padrões e docstrings. | Suíte de caracterização passando **sem nenhuma alteração** em cada commit, os 7 `xfail` ainda falhando e `handle_offers` sem `if` por tipo de oferta | R03, R13 |
+| 4 | Correção dos defeitos (Fase 4B, branch `fix/defeitos-legado`, criada após o merge da etapa 3) (**concluída**) | Corrigir DEF-01, DEF-02 e DEF-03, um commit `fix:` por defeito. | Só os 7 casos previstos mudaram de valor esperado, e não resta nenhum `xfail` | R03, R10 |
 | 5 | Implementar os combos (Fase 5) | Incluir `BundleOffer`, `Teller.add_bundle_offer` e a escolha entre as ordens C e B no `DiscountEngine`. | Suíte inteira passando, com `teller.offers` e `SpecialOfferType` inalterados | R04, R05, R06, R07, R08 |
 | 6 | Testes de regressão e dos combos (Fase 6) | Cobrir os cenários de combo, de convivência com ofertas e de "nunca encarece", e repetir a caracterização com combos cadastrados para outros produtos. | Suíte passando, logs e cobertura "depois" salvos em `evidencias/testes/` | R04 a R08, R11, R12, R13 |
 | 7 | Reavaliação de segurança (Fase 7) | Rodar Bandit, pip-audit e Safety sobre a versão final e comparar com a linha de base. | Comparativo de antes e depois registrado, com riscos remanescentes | (RNF07) |

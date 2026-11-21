@@ -226,32 +226,6 @@ def test_dois_por_valor_com_quantidade_par(teller, escova, quantidade, desconto_
     assert [d.description for d in recibo.discounts] == ["2 for 15.0"]
 
 
-@pytest.mark.parametrize("quantidade, desconto_legado, total_legado", [
-    (3, +2.5, 32.5),   # o "desconto" é positivo: o cliente paga MAIS que sem a oferta (30,00)
-    (5, -2.5, 47.5),
-    (7, -7.5, 62.5),
-])
-def test_dois_por_valor_com_quantidade_impar_defeito_legado(
-        teller, escova, quantidade, desconto_legado, total_legado):
-        
-    """Defeito legado: determinadas quantidades ímpares fazem a oferta
-    aumentar o valor final da compra.
-
-    Com 3 unidades a R$ 10,00 e a oferta "2 por R$ 15,00",
-    o cliente deveria pagar R$ 25,00, considerando duas unidades
-    promocionais e uma unidade restante.
-
-    Entretanto, o legado cobra R$ 32,50, valor superior aos
-    R$ 30,00 que seriam cobrados sem a oferta.
-    """
-    teller.add_special_offer(DOIS_POR_VALOR, escova, 15.0)
-
-    recibo = fechar_compra(teller, (escova, quantidade))
-
-    assert total_descontos(recibo) == pytest.approx(desconto_legado)
-    assert recibo.total_price() == pytest.approx(total_legado)
-
-
 # 5 por valor fixo 
 
 @pytest.mark.parametrize("quantidade, desconto_esperado, total_esperado", [
@@ -273,36 +247,6 @@ def test_cinco_por_valor(teller, escova, quantidade, desconto_esperado, total_es
         assert [d.description for d in recibo.discounts] == ["5 for 40.0"]
     else:
         assert recibo.discounts == []
-
-
-# Quantidades fracionárias em promoções por grupo
-
-@pytest.mark.parametrize("oferta, argumento, quantidade, desconto_legado, total_legado", [
-    (TRES_POR_DOIS, None, 2.9, 0.0, 5.80),     # parte inteira 2: não ativa a oferta
-    (TRES_POR_DOIS, None, 3.5, -3.0, 4.00),
-    (DOIS_POR_VALOR, 3.0, 2.5, -2.0, 3.00),
-    (CINCO_POR_VALOR, 8.0, 5.5, -3.0, 8.00),
-])
-def test_promocao_por_grupo_com_quantidade_fracionaria_legado(
-        teller, maca, oferta, argumento, quantidade, desconto_legado, total_legado):
-    """Defeito legado: nas promoções por grupo efetivamente ativadas,
-    a fração restante pode deixar de ser cobrada.
-
-    O legado utiliza a parte inteira da quantidade para calcular
-    os grupos promocionais e, em determinadas situações, não
-    considera o restante fracionário no valor final.
-
-    Exemplo: em 3,5 kg a R$ 2,00, com a oferta "3 por 2",
-    o cliente paga R$ 4,00, embora os 0,5 kg restantes
-    devessem acrescentar R$ 1,00 ao valor da compra.
-    """
-
-    teller.add_special_offer(oferta, maca, argumento)
-
-    recibo = fechar_compra(teller, (maca, quantidade))
-
-    assert total_descontos(recibo) == pytest.approx(desconto_legado)
-    assert recibo.total_price() == pytest.approx(total_legado)
 
 
 # Várias ofertas na mesma compra e consistência do recibo
@@ -391,10 +335,10 @@ def test_recibo_impresso_com_todas_as_modalidades_de_oferta():
         "arroz                               2.49",
         "3 for 2 (escova)                   -0.99",
         "10.0% off (arroz)                  -0.50",
-        "5 for 7.5 (maca)                   -3.45",
+        "5 for 7.5 (maca)                   -2.45",
         "2 for 3.0 (creme dental)           -1.16",
         "",
-        "Total:                             19.96",
+        "Total:                             20.96",
         "",
     ])
 
