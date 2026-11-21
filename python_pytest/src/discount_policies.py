@@ -1,7 +1,7 @@
 """Discount policies: one strategy per kind of special offer."""
 from abc import ABC, abstractmethod
 
-from model_objects import Discount
+from model_objects import Discount, SpecialOfferType
 
 
 class DiscountPolicy(ABC):
@@ -119,3 +119,18 @@ class FiveForAmount(GroupPriceOffer):
 
     def description(self):
         return "5 for " + str(self.amount)
+
+
+# Simple Factory: translates the public SpecialOfferType into a strategy.
+# A new kind of offer only needs a new policy class and one entry here.
+_POLICY_BY_OFFER_TYPE = {
+    SpecialOfferType.THREE_FOR_TWO: lambda offer: ThreeForTwo(offer.product),
+    SpecialOfferType.TEN_PERCENT_DISCOUNT: lambda offer: PercentageOffer(offer.product, offer.argument),
+    SpecialOfferType.TWO_FOR_AMOUNT: lambda offer: TwoForAmount(offer.product, offer.argument),
+    SpecialOfferType.FIVE_FOR_AMOUNT: lambda offer: FiveForAmount(offer.product, offer.argument),
+}
+
+
+def create_policy(offer):
+    """Create the discount policy that implements ``offer``."""
+    return _POLICY_BY_OFFER_TYPE[offer.offer_type](offer)

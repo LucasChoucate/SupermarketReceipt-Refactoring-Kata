@@ -1,5 +1,5 @@
-from discount_policies import FiveForAmount, PercentageOffer, ThreeForTwo, TwoForAmount
-from model_objects import ProductQuantity, SpecialOfferType
+from discount_policies import create_policy
+from model_objects import ProductQuantity
 
 
 class ShoppingCart:
@@ -30,16 +30,7 @@ class ShoppingCart:
         for product in self._product_quantities:
             if product not in offers:
                 continue
-            policy = self._policy_for(offers[product])
+            policy = create_policy(offers[product])
             for discount in policy.apply(self._product_quantities, catalog):
                 receipt.add_discount(discount)
 
-    @staticmethod
-    def _policy_for(offer):
-        if offer.offer_type == SpecialOfferType.THREE_FOR_TWO:
-            return ThreeForTwo(offer.product)
-        if offer.offer_type == SpecialOfferType.TWO_FOR_AMOUNT:
-            return TwoForAmount(offer.product, offer.argument)
-        if offer.offer_type == SpecialOfferType.FIVE_FOR_AMOUNT:
-            return FiveForAmount(offer.product, offer.argument)
-        return PercentageOffer(offer.product, offer.argument)
