@@ -226,32 +226,6 @@ def test_dois_por_valor_com_quantidade_par(teller, escova, quantidade, desconto_
     assert [d.description for d in recibo.discounts] == ["2 for 15.0"]
 
 
-@pytest.mark.parametrize("quantidade, desconto_legado, total_legado", [
-    (3, +2.5, 32.5),   # o "desconto" é positivo: o cliente paga MAIS que sem a oferta (30,00)
-    (5, -2.5, 47.5),
-    (7, -7.5, 62.5),
-])
-def test_dois_por_valor_com_quantidade_impar_defeito_legado(
-        teller, escova, quantidade, desconto_legado, total_legado):
-        
-    """Defeito legado: determinadas quantidades ímpares fazem a oferta
-    aumentar o valor final da compra.
-
-    Com 3 unidades a R$ 10,00 e a oferta "2 por R$ 15,00",
-    o cliente deveria pagar R$ 25,00, considerando duas unidades
-    promocionais e uma unidade restante.
-
-    Entretanto, o legado cobra R$ 32,50, valor superior aos
-    R$ 30,00 que seriam cobrados sem a oferta.
-    """
-    teller.add_special_offer(DOIS_POR_VALOR, escova, 15.0)
-
-    recibo = fechar_compra(teller, (escova, quantidade))
-
-    assert total_descontos(recibo) == pytest.approx(desconto_legado)
-    assert recibo.total_price() == pytest.approx(total_legado)
-
-
 # 5 por valor fixo 
 
 @pytest.mark.parametrize("quantidade, desconto_esperado, total_esperado", [

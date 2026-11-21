@@ -107,10 +107,6 @@ class TwoForAmount(GroupPriceOffer):
         super().__init__(product)
         self.amount = amount
 
-    def number_of_groups(self, quantity_as_int):
-        # DEF-01 (legacy): real division ("/") instead of integer division ("//").
-        return quantity_as_int / self.group_size()
-
     def group_size(self):
         return 2
 

@@ -25,7 +25,6 @@ CINCO_POR_VALOR = SpecialOfferType.FIVE_FOR_AMOUNT
 
 # DEF-01: "2 por valor" com quantidade ímpar
 
-@pytest.mark.xfail(strict=True, reason="DEF-01: a sobra do 2 por valor é cobrada duas vezes")
 @pytest.mark.parametrize("quantidade, desconto_esperado, total_esperado", [
     (3, -5.0, 25.0),    # 1 par a R$ 15,00 + 1 unidade a R$ 10,00
     (5, -10.0, 40.0),   # 2 pares + 1 unidade
