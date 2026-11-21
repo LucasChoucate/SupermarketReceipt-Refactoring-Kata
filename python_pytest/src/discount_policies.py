@@ -24,6 +24,10 @@ class DiscountPolicy(ABC):
         listed in ``PolicyResult.consumed`` cannot receive another discount.
         """
 
+    @abstractmethod
+    def products(self):
+        """Products this policy can discount."""
+
 
 class PercentageOffer(DiscountPolicy):
     """Percentage discount applied to the whole quantity of a product."""
@@ -31,6 +35,9 @@ class PercentageOffer(DiscountPolicy):
     def __init__(self, product, percentage):
         self.product = product
         self.percentage = percentage
+
+    def products(self):
+        return (self.product,)
 
     def apply(self, available, catalog):
         """Discount the percentage over all available units, consuming them all."""
@@ -50,6 +57,9 @@ class GroupPriceOffer(DiscountPolicy):
 
     def __init__(self, product):
         self.product = product
+
+    def products(self):
+        return (self.product,)
 
     def apply(self, available, catalog):
         """Template method: charge each complete group at the group price and the rest at full price.
@@ -146,6 +156,9 @@ class BundleOffer(DiscountPolicy):
         """``required`` maps each product of the bundle to the units it needs."""
         self.required = dict(required)
         self.percent = percent
+
+    def products(self):
+        return tuple(self.required)
 
     def apply(self, available, catalog):
         """Discount the complete bundles, consuming the units they use."""

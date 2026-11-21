@@ -140,3 +140,102 @@ def test_add_bundle_offer_nao_altera_as_ofertas_nem_o_enum(teller, escova, creme
 def test_add_bundle_offer_exige_pelo_menos_um_produto(teller):
     with pytest.raises(ValueError):
         teller.add_bundle_offer([])
+
+
+# Convivência entre combos e ofertas individuais (decisão D1, RF16)
+# O carrinho é calculado nas duas ordens (ofertas primeiro e combos primeiro)
+# e fica o menor total, comparado em centavos; em empate, vencem as ofertas.
+
+TRES_POR_DOIS = SpecialOfferType.THREE_FOR_TWO
+PERCENTUAL = SpecialOfferType.TEN_PERCENT_DISCOUNT
+DOIS_POR_VALOR = SpecialOfferType.TWO_FOR_AMOUNT
+CINCO_POR_VALOR = SpecialOfferType.FIVE_FOR_AMOUNT
+
+
+@pytest.mark.parametrize("oferta, argumento, escovas, cremes, total_esperado, descricoes_esperadas", [
+    pytest.param(TRES_POR_DOIS, None, 3, 1, 35.00, ["3 for 2"],
+                 id="oferta_vence_3_por_2"),
+    pytest.param(PERCENTUAL, 20.0, 1, 1, 22.50, ["combo 10% off", "combo 10% off"],
+                 id="combo_vence_percentual_de_20"),
+    pytest.param(CINCO_POR_VALOR, 40.0, 5, 5, 112.50, ["combo 10% off", "combo 10% off"],
+                 id="combo_vence_5_por_valor"),
+    pytest.param(DOIS_POR_VALOR, 15.0, 2, 2, 45.00, ["2 for 15.0"],
+                 id="empate_mantem_a_oferta"),
+])
+def test_escolhe_a_ordem_de_menor_total(
+        teller, escova, creme_dental, oferta, argumento, escovas, cremes, total_esperado, descricoes_esperadas):
+    teller.add_special_offer(oferta, escova, argumento)
+    teller.add_bundle_offer([escova, creme_dental])
+
+    recibo = fechar_compra(teller, (escova, escovas), (creme_dental, cremes))
+
+    assert recibo.total_price() == pytest.approx(total_esperado)
+    assert [d.description for d in recibo.discounts] == descricoes_esperadas
+
+
+def test_oferta_de_produto_fora_do_combo_nao_e_afetada(teller, escova, creme_dental, fio_dental):
+    teller.add_special_offer(TRES_POR_DOIS, fio_dental, None)
+    teller.add_bundle_offer([escova, creme_dental])
+
+    recibo = fechar_compra(teller, (escova, 1), (creme_dental, 1), (fio_dental, 3))
+
+    assert [(d.product, d.description) for d in recibo.discounts] == [
+        (fio_dental, "3 for 2"), (escova, "combo 10% off"), (creme_dental, "combo 10% off")]
+    assert recibo.total_price() == pytest.approx(40.00 - 5.00 - 2.50)
+
+
+def test_combo_vencedor_nao_deixa_linha_vazia_da_oferta_substituida(teller, escova, creme_dental, fio_dental):
+    teller.add_special_offer(PERCENTUAL, escova, 20.0)
+    teller.add_special_offer(TRES_POR_DOIS, fio_dental, None)
+    teller.add_bundle_offer([escova, creme_dental])
+
+    recibo = fechar_compra(teller, (escova, 1), (creme_dental, 1), (fio_dental, 3))
+
+    # Combos primeiro é mais barato (R$ 32,50 contra R$ 33,00). O combo consome
+    # a única escova, então a oferta de 20% não gera linha de desconto 0,00.
+    # No recibo, os descontos individuais vêm antes dos de combo.
+    assert [(d.product, d.description) for d in recibo.discounts] == [
+        (fio_dental, "3 for 2"), (escova, "combo 10% off"), (creme_dental, "combo 10% off")]
+    assert recibo.total_price() == pytest.approx(32.50)
+
+
+def test_combo_usa_as_unidades_que_sobram_da_oferta(teller, escova, creme_dental):
+    teller.add_special_offer(TRES_POR_DOIS, escova, None)
+    teller.add_bundle_offer([escova, creme_dental])
+
+    recibo = fechar_compra(teller, (escova, 4), (creme_dental, 1))
+
+    # "3 por 2" nas 3 primeiras escovas (-10,00); a 4ª forma combo com o creme (-2,50)
+    assert [d.description for d in recibo.discounts] == ["3 for 2", "combo 10% off", "combo 10% off"]
+    assert recibo.total_price() == pytest.approx(55.00 - 12.50)
+
+
+OFERTAS_NA_ESCOVA = [
+    (None, None),
+    (TRES_POR_DOIS, None),
+    (PERCENTUAL, 20.0),
+    (DOIS_POR_VALOR, 15.0),
+    (CINCO_POR_VALOR, 40.0),
+]
+
+
+@pytest.mark.parametrize("oferta, argumento", OFERTAS_NA_ESCOVA)
+def test_cadastrar_um_combo_nunca_encarece_o_carrinho(catalogo, escova, creme_dental, oferta, argumento):
+    from teller import Teller
+
+    for escovas in range(0, 8):
+        for cremes in range(0, 4):
+            sem_combo, com_combo = Teller(catalogo), Teller(catalogo)
+            for teller in (sem_combo, com_combo):
+                if oferta:
+                    teller.add_special_offer(oferta, escova, argumento)
+            com_combo.add_bundle_offer([escova, creme_dental])
+            itens = ((escova, escovas), (creme_dental, cremes))
+
+            recibo_sem = fechar_compra(sem_combo, *itens)
+            recibo_com = fechar_compra(com_combo, *itens)
+
+            assert round(recibo_com.total_price(), 2) <= round(recibo_sem.total_price(), 2)
+            if not (escovas and cremes):
+                # sem combo completo, o recibo é idêntico ao do carrinho sem combos
+                assert imprimir(recibo_com) == imprimir(recibo_sem)
