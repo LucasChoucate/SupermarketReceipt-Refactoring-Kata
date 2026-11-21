@@ -1,5 +1,6 @@
 import math
 
+from discount_policies import PercentageOffer
 from model_objects import ProductQuantity, SpecialOfferType, Discount
 
 
@@ -32,6 +33,11 @@ class ShoppingCart:
             if product not in offers:
                 continue
             offer = offers[product]
+            if offer.offer_type == SpecialOfferType.TEN_PERCENT_DISCOUNT:
+                policy = PercentageOffer(product, offer.argument)
+                for discount in policy.apply(self._product_quantities, catalog):
+                    receipt.add_discount(discount)
+                continue
             unit_price = catalog.unit_price(product)
             discount = self._discount_for(offer, product, quantity, unit_price)
             if discount:
@@ -44,8 +50,6 @@ class ShoppingCart:
             return self._two_for_amount(offer, product, quantity, unit_price)
         if offer.offer_type == SpecialOfferType.FIVE_FOR_AMOUNT:
             return self._five_for_amount(offer, product, quantity, unit_price)
-        if offer.offer_type == SpecialOfferType.TEN_PERCENT_DISCOUNT:
-            return self._percentage(offer, product, quantity, unit_price)
         return None
 
     @staticmethod
@@ -80,8 +84,3 @@ class ShoppingCart:
         discount_amount = unit_price * quantity - (
             offer.argument * number_of_groups + quantity_as_int % group_size * unit_price)
         return Discount(product, str(group_size) + " for " + str(offer.argument), -discount_amount)
-
-    @staticmethod
-    def _percentage(offer, product, quantity, unit_price):
-        return Discount(product, str(offer.argument) + "% off",
-                        -quantity * unit_price * offer.argument / 100.0)
