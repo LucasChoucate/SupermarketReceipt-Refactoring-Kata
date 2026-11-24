@@ -38,14 +38,17 @@ Este documento registra a análise de segurança do código e das dependências 
 
 | Item | Antes | Depois |
 |---|---|---|
-| Data da execução | 21/11/2026 | |
-| Código analisado | tag `legado-baseline` (commit `58df732`) | |
-| Sistema operacional | Ubuntu 26.04 LTS no WSL2 (kernel 6.18.33.1-microsoft-standard-WSL2) | |
-| Python do ambiente de auditoria (`../.venv-audit`) | 3.14.6 | |
-| Python do ambiente do projeto (`python_pytest/.venv`) | 3.14.6 | |
-| Bandit | 1.9.4 | |
-| pip-audit | 2.10.1 | |
-| Safety | 3.8.1 | |
+| Data da execução | 21/11/2026 | 24/11/2026 |
+| Código analisado | tag `legado-baseline` (commit `58df732`) | branch `chore/seguranca-depois`: `src/` idêntico ao da `develop` (commit `533dff7`), com as ações 1 a 3 da [seção 7](#7-ações-planejadas) aplicadas |
+| Sistema operacional | Ubuntu 26.04 LTS no WSL2 (kernel 6.18.33.1-microsoft-standard-WSL2) | Windows 10 Pro 22H2 (build 19045) |
+| Python do ambiente de auditoria (`../.venv-audit`) | 3.14.6 | 3.13.0 |
+| Python do ambiente do projeto (`python_pytest/.venv`) | 3.14.6 | 3.13.0 |
+| `pip` do ambiente do projeto | 26.1.2 | 26.3 |
+| Bandit | 1.9.4 | 1.9.4 |
+| pip-audit | 2.10.1 | 2.10.1 |
+| Safety | 3.8.1 | 3.8.1 |
+
+As versões das três ferramentas são as mesmas nas duas execuções. O sistema operacional e o Python mudaram porque a reavaliação foi feita em outra máquina. Isso não afeta o Bandit, que analisa o código-fonte, mas afeta a lista de pacotes resolvidos: no Windows, o `pytest` instala também o `colorama` (ver a [seção 8.2](#82-pip-audit)).
 
 ### 2.2 Ambiente de auditoria isolado
 
@@ -73,6 +76,29 @@ mkdir -p $D
 ../.venv-audit/bin/safety scan --target python_pytest --output json > $D/safety.json
 ```
 
+**Depois (Windows, PowerShell).** No Windows os executáveis do ambiente virtual ficam em `Scripts\`, e não em `bin/`. O ambiente do projeto foi recriado do zero, com o `pip` atualizado, para que nenhum pacote removido do `requirements.txt` continuasse instalado:
+
+```powershell
+$D = "docs/evidencias/seguranca/depois"
+
+# ambiente do projeto limpo, com o pip atualizado (ação 3)
+python -m venv python_pytest\.venv
+python_pytest\.venv\Scripts\python.exe -m pip install --upgrade pip
+python_pytest\.venv\Scripts\pip.exe install -r python_pytest\requirements.txt
+
+..\.venv-audit\Scripts\bandit.exe -r python_pytest/src -f json -o $D/bandit.json
+..\.venv-audit\Scripts\bandit.exe -r python_pytest/src -f txt  -o $D/bandit.txt
+..\.venv-audit\Scripts\pip-audit.exe -r python_pytest/requirements.txt -f json -o $D/pip-audit.json
+..\.venv-audit\Scripts\safety.exe auth login
+..\.venv-audit\Scripts\safety.exe scan --target python_pytest --save-as json $D/safety.json
+```
+
+O Safety usou `--save-as` em vez de redirecionar a saída com `>` (ver a [seção 8.3](#83-safety)). Depois disso, o `safety.json` foi reformatado com indentação e convertido para UTF-8, sem alterar o conteúdo:
+
+```powershell
+python -c "import json;p='docs/evidencias/seguranca/depois/safety.json';b=open(p,'rb').read();t=b.decode('utf-8','strict') if b.isascii() else b.decode('cp1252');open(p,'w',encoding='utf-8',newline='\n').write(json.dumps(json.loads(t),indent=2,ensure_ascii=False)+'\n')"
+```
+
 ### 2.4 Evidências
 
 | Arquivo | Conteúdo |
@@ -81,6 +107,10 @@ mkdir -p $D
 | [`evidencias/seguranca/antes/bandit.txt`](evidencias/seguranca/antes/bandit.txt) | Relatório do Bandit (texto) |
 | [`evidencias/seguranca/antes/pip-audit.json`](evidencias/seguranca/antes/pip-audit.json) | Relatório do pip-audit |
 | [`evidencias/seguranca/antes/safety.json`](evidencias/seguranca/antes/safety.json) | Relatório do Safety |
+| [`evidencias/seguranca/depois/bandit.json`](evidencias/seguranca/depois/bandit.json) | Relatório do Bandit (JSON), depois |
+| [`evidencias/seguranca/depois/bandit.txt`](evidencias/seguranca/depois/bandit.txt) | Relatório do Bandit (texto), depois |
+| [`evidencias/seguranca/depois/pip-audit.json`](evidencias/seguranca/depois/pip-audit.json) | Relatório do pip-audit, depois |
+| [`evidencias/seguranca/depois/safety.json`](evidencias/seguranca/depois/safety.json) | Relatório do Safety, depois |
 
 ---
 
@@ -197,53 +227,78 @@ Ações a aplicar na Fase 7 do [plano de execução](plano_de_execucao.md), ante
 
 ## 8. Resultados depois da modernização
 
-> **A preencher na Fase 7.** Rodar os mesmos comandos da [seção 2.3](#23-comandos-executados) sobre a `develop` já modernizada, com `D=docs/evidencias/seguranca/depois`, e completar a coluna "Depois" da seção 2.1.
+Execução de 24/11/2026, com os comandos da [seção 2.3](#23-comandos-executados) e as evidências em `docs/evidencias/seguranca/depois/`. Antes dela, foram aplicadas as ações 1 a 3 da [seção 7](#7-ações-planejadas):
+
+| # | Ação | Como foi aplicada |
+|---|---|---|
+| 1 | Fixar as versões | `requirements.txt` com `pytest==9.2.0` e `coverage==7.6.12` |
+| 2 | Remover o `approvaltests` (D7) | `approvaltests` e `pytest-approvaltests` saíram do `requirements.txt`. Foram removidos também o `tests/approvaltests_config.json` e a entrada `.approval_tests_temp` do `python_pytest/.gitignore`. Os 118 testes continuam passando, o que confirma que nenhum deles usava a biblioteca |
+| 3 | Atualizar o `pip` do ambiente | `.venv` recriado do zero, com o `pip` 26.3. O passo de atualização foi incluído na seção "Setup" do [`python_pytest/README.md`](../python_pytest/README.md#setup) |
+
+**Sobre a versão do `pytest`.** Uma primeira tentativa fixou `pytest==8.3.5`. O Safety passou a apontar o A-01 como ocorrência **não ignorada**, porque a versão fixada estava dentro da faixa vulnerável (`<9.0.3`). Antes da fixação, a política o ignorava só por falta de versão. A versão foi corrigida para 9.2.0 antes da execução registrada aqui. O episódio mostra que fixar a versão só resolve o alerta quando a versão escolhida está fora da faixa vulnerável.
 
 ### 8.1 Bandit
 
 | Métrica | Resultado |
 |---|---|
-| Arquivos analisados | |
-| Linhas de código | |
-| Ocorrências (alta / média / baixa) | |
+| Arquivos analisados | 7 (`catalog.py`, `discount_engine.py`, `discount_policies.py`, `model_objects.py`, `receipt.py`, `shopping_cart.py`, `teller.py`) |
+| Linhas de código | 349 |
+| Ocorrências (alta / média / baixa) | 0 / 0 / 0 |
+| Linhas ignoradas com `# nosec` | 0 |
+| Erros | 0 |
+
+**Nenhum padrão inseguro foi identificado no código modernizado.** Os módulos novos (`discount_policies.py` e `discount_engine.py`) seguem o padrão do legado: nenhuma entrada externa, nenhum acesso a arquivos, rede ou banco de dados, nenhuma execução de comandos e nenhum `eval`. Nenhuma linha foi silenciada com `# nosec`.
 
 ### 8.2 pip-audit
 
 | Métrica | Resultado |
 |---|---|
-| Pacotes auditados | |
-| Vulnerabilidades conhecidas | |
+| Pacotes auditados (declarados e transitivos) | 6 |
+| Vulnerabilidades conhecidas | **0** |
+| Correções sugeridas | nenhuma |
+
+Versões resolvidas: `pytest` 9.2.0, `coverage` 7.6.12, `pluggy` 1.7.0, `iniconfig` 2.3.1, `pygments` 2.21.0 e `colorama` 0.4.6. O `colorama` só é instalado pelo `pytest` no Windows. No Linux, a mesma auditoria resolveria 5 pacotes.
 
 ### 8.3 Safety
 
 | Métrica | Resultado |
 |---|---|
-| Alvos encontrados | |
-| Ocorrências (ignoradas / não ignoradas) | |
+| Autenticação | Exigida. Relatório gerado como `authenticated: true` |
+| Política aplicada | Política padrão da conta, carregada da nuvem (`policy.source: cloud`) |
+| Alvos encontrados | `requirements.txt` (2 dependências) e `.venv/pyvenv.cfg` (8 pacotes, incluindo `pip` 26.3 e `packaging`) |
+| Ocorrências (ignoradas / não ignoradas) | **0 / 0** |
+
+**Limitações encontradas no Windows**, além das já descritas na [seção 4.4](#44-limitação-de-acesso-do-safety):
+
+- **Redirecionamento com `>`.** No PowerShell 5.1, o `>` grava o arquivo em UTF-16, e não em UTF-8. Além disso, ele esconde a pergunta de vínculo do projeto, e o `safety.json` saiu vazio. A solução foi usar a opção `--save-as json <arquivo>`, que grava o relatório diretamente e mantém a saída normal na tela.
+- **Codificação do `--save-as`.** O arquivo gerado vem sem quebras de linha, e o caminho da pasta, que tem acento ("MATÉRIAS"), vem na codificação Windows-1252, e não em UTF-8. O arquivo foi reformatado e convertido para UTF-8, sem alterar o conteúdo, com o comando da [seção 2.3](#23-comandos-executados).
+- **Comando `safety check`.** Uma tentativa intermediária usou o comando antigo `safety check`, descontinuado desde 2024. Ele analisa só o `requirements.txt`, sem o ambiente virtual, e por isso não é comparável com a linha de base. O relatório foi descartado.
 
 ---
 
 ## 9. Comparação antes e depois
 
-> **A completar na Fase 7.**
-
 | Ferramenta | Métrica | Antes | Depois | Observação |
 |---|---|---|---|---|
-| Bandit | Arquivos / linhas em `src/` | 5 / 133 | | A refatoração cria novos módulos (`discount_policies.py`, `discount_engine.py`) |
-| Bandit | Ocorrências | 0 | | |
-| pip-audit | Pacotes auditados | 22 | | Deve cair com a remoção do `approvaltests` (D7) |
-| pip-audit | Vulnerabilidades | 0 | | |
-| Safety | Ocorrências no `requirements.txt` | 1 (A-01, ignorada) | | Deve zerar com as versões fixadas |
-| Safety | Ocorrências no ambiente | 2 (A-02 e A-03, ignoradas) | | Deve zerar com o `pip` atualizado |
+| Bandit | Arquivos / linhas em `src/` | 5 / 133 | 7 / 349 | A refatoração criou novos módulos (`discount_policies.py`, `discount_engine.py`) e implementou os combos |
+| Bandit | Ocorrências | 0 | 0 | O código cresceu 2,6 vezes sem introduzir padrões inseguros |
+| pip-audit | Pacotes auditados | 22 | 6 | Queda de 73%, causada pela remoção do `approvaltests` (D7), que trazia a maior parte das dependências transitivas |
+| pip-audit | Vulnerabilidades | 0 | 0 | |
+| Safety | Dependências declaradas no `requirements.txt` | 4 (sem versão) | 2 (versões fixadas) | |
+| Safety | Pacotes no ambiente do projeto | 24 | 8 | |
+| Safety | Ocorrências no `requirements.txt` | 1 (A-01, ignorada) | 0 | Zerou com a fixação do `pytest` em 9.2.0 |
+| Safety | Ocorrências no ambiente | 2 (A-02 e A-03, ignoradas) | 0 | Zerou com o `pip` atualizado para 26.3 |
 
 | Alerta | Situação depois | Motivo |
 |---|---|---|
-| A-01 | | |
-| A-02 | | |
-| A-03 | | |
-| A-04 | Não se aplica | Ferramentas isoladas desde a linha de base |
-| A-05 | Não se aplica | Fora do escopo |
-| Novos alertas | | |
+| A-01 | **Resolvido** | `pytest` fixado em 9.2.0, fora da faixa vulnerável (`<9.0.3`). A instalação deixou de depender da versão que o `pip` resolver no momento |
+| A-02 | **Resolvido** | `pip` do ambiente do projeto atualizado de 26.1.2 para 26.3, fora da faixa `<26.2` |
+| A-03 | **Resolvido** | Mesma atualização: 26.3 está fora da faixa `>=19.1,<26.2.2` |
+| A-04 | Não se aplica | Ferramentas isoladas em `../.venv-audit` desde a linha de base. O `filelock` não aparece em nenhum relatório |
+| A-05 | Não se aplica | A pasta `tests/` continua fora do escopo do Bandit |
+| Novos alertas | **Nenhum** | Nenhuma das três ferramentas apontou ocorrência nova, nem nos módulos criados na refatoração |
+
+**Síntese:** todos os alertas da linha de base que se aplicavam ao projeto foram resolvidos, e nenhum alerta novo surgiu. A superfície de dependências caiu de 22 para 6 pacotes. Isso reduz a exposição a vulnerabilidades futuras, porque cada pacote a menos é um pacote a menos para acompanhar. Como alerta a [seção 1](#1-objetivo-e-ressalvas), esse resultado **não prova** que o sistema é seguro: ele mostra apenas que as ferramentas não encontraram problemas conhecidos no escopo que cada uma cobre. Nenhuma dependência foi adicionada para gerar resultados.
 
 ---
 

@@ -502,14 +502,13 @@ Os cenários de combo (1 a 14) entraram na Fase 5, junto com o código. Esta fas
 
 > **Edital:** Passo 11 | **Barema:** restante de 1,0 | **Branch:** `chore/seguranca-depois`
 
-- [ ] **Remover `approvaltests` e `pytest-approvaltests`** (decisão D7, tomada na Fase 3), junto com o `tests/approvaltests_config.json`.
-- [ ] **Fixar as versões no `requirements.txt`** (por exemplo, `pytest==9.2.0`, `coverage==7.17.3`), para a instalação ser reproduzível (RNF08).
-- [ ] **Rodar os mesmos comandos da Fase 2** sobre a `develop`, com saída em `docs/evidencias/seguranca/depois/`.
-- [ ] **Montar o comparativo de antes e depois** em `docs/seguranca_antes_depois.md`:
+- [x] **Fixar as versões no `requirements.txt`** (por exemplo, `pytest==9.2.0`, `coverage==7.17.3`), para a instalação ser reproduzível (RNF08).
+- [x] **Rodar os mesmos comandos da Fase 2** sobre a `develop`, com saída em `docs/evidencias/seguranca/depois/`.
+- [x] **Montar o comparativo de antes e depois** em `docs/seguranca_antes_depois.md`:
   - achados que sumiram e o motivo;
   - achados novos, se houver;
   - **riscos remanescentes**: o uso de `float` para dinheiro e as limitações da análise estática e das bases de vulnerabilidades.
-- [ ] **Incluir as ressalvas exigidas pelo edital:**
+- [x] **Incluir as ressalvas exigidas pelo edital:**
   - a ausência de alertas não prova que o sistema é seguro;
   - nenhuma dependência foi adicionada só para gerar resultado nas ferramentas.
 
