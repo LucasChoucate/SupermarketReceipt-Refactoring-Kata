@@ -504,11 +504,11 @@ Os cenários de combo (1 a 14) entraram na Fase 5, junto com o código. Esta fas
 
 - [x] **Fixar as versões no `requirements.txt`** (por exemplo, `pytest==9.2.0`, `coverage==7.17.3`), para a instalação ser reproduzível (RNF08).
 - [x] **Rodar os mesmos comandos da Fase 2** sobre a `develop`, com saída em `docs/evidencias/seguranca/depois/`.
-- [ ] **Montar o comparativo de antes e depois** em `docs/seguranca_antes_depois.md`:
+- [x] **Montar o comparativo de antes e depois** em `docs/seguranca_antes_depois.md`:
   - achados que sumiram e o motivo;
   - achados novos, se houver;
   - **riscos remanescentes**: o uso de `float` para dinheiro e as limitações da análise estática e das bases de vulnerabilidades.
-- [ ] **Incluir as ressalvas exigidas pelo edital:**
+- [x] **Incluir as ressalvas exigidas pelo edital:**
   - a ausência de alertas não prova que o sistema é seguro;
   - nenhuma dependência foi adicionada só para gerar resultado nas ferramentas.
 

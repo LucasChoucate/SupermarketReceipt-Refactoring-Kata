@@ -1,0 +1,196 @@
+{
+  "meta": {
+    "scan_type": "scan",
+    "stage": "development",
+    "scan_locations": [
+      "C:\\Users\\Lucas Choucate\\Desktop\\Replit Canalha\\MATÉRIAS\\ALTA QUALIDADE\\SupermarketReceipt-Refactoring-Kata\\SupermarketReceipt-Refactoring-Kata\\python_pytest"
+    ],
+    "authenticated": true,
+    "authentication_method": "token",
+    "timestamp": "2026-11-24T16:35:53.148635",
+    "telemetry": {
+      "os_type": "Windows",
+      "os_release": "10",
+      "os_description": "Windows-10-10.0.19045-SP0",
+      "python_version": "3.13.0",
+      "safety_command": "scan",
+      "safety_options": {
+        "target": {
+          "--target": 1
+        },
+        "save_as": {
+          "--save-as": 1
+        }
+      },
+      "safety_version": "3.8.1",
+      "safety_source": "cli"
+    },
+    "schema_version": "3.0"
+  },
+  "scan_results": {
+    "files": [],
+    "projects": [
+      {
+        "id": "python-pytest",
+        "upload_request_id": null,
+        "location": "C:\\Users\\Lucas Choucate\\Desktop\\Replit Canalha\\MATÉRIAS\\ALTA QUALIDADE\\SupermarketReceipt-Refactoring-Kata\\SupermarketReceipt-Refactoring-Kata\\python_pytest",
+        "policy": {
+          "id": "79f8d03c-a17c-4443-ad26-051dca39d29d",
+          "path": null,
+          "source": "cloud"
+        },
+        "git": {
+          "branch": "chore/seguranca-depois",
+          "tag": "",
+          "commit": "dbf748d04aab41a62c52376188e0849d9bab54cd",
+          "dirty": true,
+          "origin": "https://github.com/LucasChoucate/SupermarketReceipt-Refactoring-Kata.git"
+        },
+        "files": [
+          {
+            "location": "C:\\Users\\Lucas Choucate\\Desktop\\Replit Canalha\\MATÉRIAS\\ALTA QUALIDADE\\SupermarketReceipt-Refactoring-Kata\\SupermarketReceipt-Refactoring-Kata\\python_pytest\\requirements.txt",
+            "type": "requirements.txt",
+            "categories": [
+              "python"
+            ],
+            "results": {
+              "dependencies": [
+                {
+                  "name": "pytest",
+                  "specifications": [
+                    {
+                      "raw": "pytest==9.2.0",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "coverage",
+                  "specifications": [
+                    {
+                      "raw": "coverage==7.6.12",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "location": "C:\\Users\\Lucas Choucate\\Desktop\\Replit Canalha\\MATÉRIAS\\ALTA QUALIDADE\\SupermarketReceipt-Refactoring-Kata\\SupermarketReceipt-Refactoring-Kata\\python_pytest\\.venv\\pyvenv.cfg",
+            "type": "pyvenv.cfg",
+            "categories": [
+              "python"
+            ],
+            "results": {
+              "dependencies": [
+                {
+                  "name": "colorama",
+                  "specifications": [
+                    {
+                      "raw": "colorama==0.4.6",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "coverage",
+                  "specifications": [
+                    {
+                      "raw": "coverage==7.6.12",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "iniconfig",
+                  "specifications": [
+                    {
+                      "raw": "iniconfig==2.3.1",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "packaging",
+                  "specifications": [
+                    {
+                      "raw": "packaging==26.4",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "pip",
+                  "specifications": [
+                    {
+                      "raw": "pip==26.3",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "pluggy",
+                  "specifications": [
+                    {
+                      "raw": "pluggy==1.7.0",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "pygments",
+                  "specifications": [
+                    {
+                      "raw": "pygments==2.21.0",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "pytest",
+                  "specifications": [
+                    {
+                      "raw": "pytest==9.2.0",
+                      "vulnerabilities": {
+                        "known_vulnerabilities": [],
+                        "remediation": null
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
