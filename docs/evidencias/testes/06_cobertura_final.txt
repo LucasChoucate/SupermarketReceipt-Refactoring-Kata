@@ -1,0 +1,11 @@
+﻿Name                       Stmts   Miss Branch BrPart  Cover   Missing
+----------------------------------------------------------------------
+src\catalog.py                 7      3      0      0    57%   12, 16, 20
+src\discount_engine.py        29      0     14      0   100%
+src\discount_policies.py      98      0      6      0   100%
+src\model_objects.py          27      0      0      0   100%
+src\receipt.py                27      0      4      0   100%
+src\shopping_cart.py          21      0      2      0   100%
+src\teller.py                 29      0      6      0   100%
+----------------------------------------------------------------------
+TOTAL                        238      3     32      0    99%

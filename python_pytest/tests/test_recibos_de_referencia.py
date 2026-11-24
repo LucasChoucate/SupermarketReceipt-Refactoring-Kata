@@ -143,3 +143,14 @@ def test_recibo_de_referencia_sem_combos(request, teller, ofertas, itens, linhas
     recibo = fechar_compra_do_cenario(request, teller, ofertas, itens)
 
     assert imprimir(recibo) == "\n".join(linhas_esperadas) + "\n"
+
+
+@pytest.mark.parametrize("ofertas, itens, linhas_esperadas", CENARIOS)
+def test_recibo_de_referencia_com_combo_de_outros_produtos(
+        request, teller, shampoo, condicionador, ofertas, itens, linhas_esperadas):
+    """Cenário 15: um combo cadastrado para produtos fora do carrinho não muda o recibo."""
+    teller.add_bundle_offer([shampoo, condicionador])
+
+    recibo = fechar_compra_do_cenario(request, teller, ofertas, itens)
+
+    assert imprimir(recibo) == "\n".join(linhas_esperadas) + "\n"
