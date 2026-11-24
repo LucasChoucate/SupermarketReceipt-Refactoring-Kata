@@ -2,4 +2,3 @@
 .pytest_cache
 __pycache__
 .idea
-.approval_tests_temp
