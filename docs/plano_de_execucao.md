@@ -518,7 +518,7 @@ Os cenários de combo (1 a 14) entraram na Fase 5, junto com o código. Esta fas
 
 > **Edital:** entregável 5.5 | **Barema:** parte dos 2,0 de padrões | **Arquivo:** `docs/padroes_projeto.md`
 
-- [ ] **Diagramas de classes de antes e depois**, em Mermaid, que o GitHub renderiza:
+- [x] **Diagramas de classes de antes e depois**, em Mermaid, que o GitHub renderiza:
   ```mermaid
   classDiagram
       class DiscountPolicy {
@@ -535,17 +535,17 @@ Os cenários de combo (1 a 14) entraram na Fase 5, junto com o código. Esta fas
       Teller --> DiscountEngine
       ShoppingCart ..> DiscountEngine : handle_offers (fachada)
   ```
-- [ ] **Para cada padrão (Strategy, Template Method e Factory):**
+- [x] **Para cada padrão (Strategy, Template Method e Factory):**
   - o problema que resolve, com referência ao diagnóstico;
   - o trecho de código antes e depois;
   - os testes que o exercitam.
-- [ ] **Seção de SOLID:**
+- [x] **Seção de SOLID:**
   - **SRP:** o carrinho só guarda itens; o cálculo de descontos foi para as políticas e o engine.
   - **OCP:** os combos entraram sem alterar as estratégias existentes.
   - **LSP:** toda `DiscountPolicy` pode ser trocada por outra no engine.
   - **DIP:** o engine depende da abstração `DiscountPolicy`, não dos tipos concretos.
-- [ ] **Benefício do Template Method nas correções:** o DEF-02 estava replicado em três blocos do legado, e depois da refatoração foi corrigido em um único método.
-- [ ] **Demonstração de extensibilidade:** quantas linhas do código existente foi preciso alterar para adicionar os combos (`git diff --stat` da Fase 5).
+- [x] **Benefício do Template Method nas correções:** o DEF-02 estava replicado em três blocos do legado, e depois da refatoração foi corrigido em um único método.
+- [x] **Demonstração de extensibilidade:** quantas linhas do código existente foi preciso alterar para adicionar os combos (`git diff --stat` da Fase 5).
 
 ---
 
