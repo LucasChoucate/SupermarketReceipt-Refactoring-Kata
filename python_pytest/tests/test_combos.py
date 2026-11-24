@@ -1,4 +1,4 @@
-"""Testes da promoção de combos (Fase 5).
+"""Testes da promoção de combos 
 
 Regra: quando o carrinho tem todos os produtos de um combo, aplica-se 10%
 de desconto só sobre as unidades que formam combos completos. Preços das
@@ -11,7 +11,6 @@ from model_objects import SpecialOfferType
 from tests.auxiliares import fechar_compra, imprimir, total_descontos
 
 
-# BundleOffer (estratégia isolada)
 
 @pytest.mark.parametrize("escovas, cremes, combos", [
     pytest.param(1, 1, 1, id="combo_completo"),
@@ -39,7 +38,7 @@ def test_combo_com_mais_de_uma_unidade_do_mesmo_produto(catalogo, escova, creme_
 
     resultado = combo.apply({escova: 5, creme_dental: 3}, catalogo)
 
-    # 2 combos: limitados pelas escovas (5 // 2); desconto = 10% de 2 x (2 x 10 + 15)
+    # 2 combos: limitados pelas escovas; 
     assert resultado.consumed == {escova: 4, creme_dental: 2}
     assert sum(d.discount_amount for d in resultado.discounts) == pytest.approx(-7.00)
 
@@ -61,7 +60,7 @@ def test_percentual_do_combo_pode_ser_informado(catalogo, escova, creme_dental):
     assert {d.description for d in resultado.discounts} == {"combo 20% off"}
 
 
-# Combos no checkout: cenários do roteiro (seção 3.2)
+# Combos no checkout: cenários do roteiro 
 
 @pytest.mark.parametrize("escovas, cremes, desconto_esperado, total_esperado", [
     pytest.param(1, 1, -2.50, 22.50, id="1_escova_1_creme"),
@@ -107,6 +106,24 @@ def test_dois_combos_disputando_o_mesmo_produto_vence_a_ordem_de_cadastro(
     assert recibo.total_price() == pytest.approx(30.00 - 2.50)
 
 
+@pytest.mark.parametrize("shampoos, condicionadores, desconto_esperado, total_esperado", [
+    pytest.param(1, 1, -5.70, 51.30, id="dois_combos_independentes_completos"),
+    pytest.param(1, 0, -2.50, 42.50, id="um_completo_e_um_incompleto"),
+])
+def test_combos_independentes_no_mesmo_carrinho(
+        teller, escova, creme_dental, shampoo, condicionador,
+        shampoos, condicionadores, desconto_esperado, total_esperado):
+    teller.add_bundle_offer([escova, creme_dental])
+    teller.add_bundle_offer([shampoo, condicionador])
+
+    recibo = fechar_compra(
+        teller, (escova, 1), (creme_dental, 1), (shampoo, shampoos), (condicionador, condicionadores))
+
+    # combo 1: 10% de (10,00 + 15,00) = 2,50; combo 2: 10% de (20,00 + 12,00) = 3,20
+    assert total_descontos(recibo) == pytest.approx(desconto_esperado)
+    assert recibo.total_price() == pytest.approx(total_esperado)
+
+
 def test_recibo_impresso_com_combo(teller, escova, creme_dental):
     teller.add_bundle_offer([escova, creme_dental])
 
@@ -142,8 +159,8 @@ def test_add_bundle_offer_exige_pelo_menos_um_produto(teller):
         teller.add_bundle_offer([])
 
 
-# Convivência entre combos e ofertas individuais (decisão D1, RF16)
-# O carrinho é calculado nas duas ordens (ofertas primeiro e combos primeiro)
+# Convivência entre combos e ofertas individuais 
+# O carrinho é calculado nas duas ordens 
 # e fica o menor total, comparado em centavos; em empate, vencem as ofertas.
 
 TRES_POR_DOIS = SpecialOfferType.THREE_FOR_TWO
