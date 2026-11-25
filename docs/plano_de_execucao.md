@@ -560,8 +560,8 @@ A fase só altera documentação e o `.gitignore`. O `src/` e o `tests/` não mu
 
 | # | Decisão | Escolha |
 |---|---|---|
-| 1 | Integrantes | **A definir** pelo grupo: nome e, se o professor pedir, matrícula |
-| 2 | Ambiente de referência | **A confirmar.** Proposta: Linux (Ubuntu ou WSL) com Python 3.14, o ambiente dos logs 01 a 05. A versão mínima é o Python 3.10, exigida pelo `pytest==9.2.0`. O Windows entra como "também verificado", com os logs que comprovam: Python 3.12.5 no `06_pytest_final.log` e 3.13.0 na segurança "depois" |
+| 1 | Integrantes | Felipe Nogueira, Lucas Choucate, Júlia Gaglianone, Ramon Papes e Suianne Martins |
+| 2 | Ambiente | Não há um ambiente de referência único: o projeto deve rodar em **qualquer sistema operacional** com **Python 3.10 ou superior**, o mínimo exigido pelo `pytest==9.2.0`. O README traz os comandos para Linux, macOS e Windows e lista os ambientes em que a suíte já foi executada, com a evidência de cada um |
 | 3 | Lições aprendidas, elemento da seção 6 do edital que ainda não existe | Seção curta no próprio README |
 | 4 | `python_pytest/README.md`, que repete os comandos de instalação | Manter a descrição original do kata e trocar a seção *Setup* por um link para o README da raiz, para que haja uma única versão dos comandos |
 
@@ -597,7 +597,7 @@ Depois do 9.11: push, PR para a `develop` e revisão por outro integrante, de pr
 1. **Objetivo:** modernização do legado (caracterização, refatoração com padrões de projeto, combos e segurança), com a disciplina e o professor.
 2. **Integrantes** (decisão 1).
 3. **Créditos:** kata original de Emily Bache, licença MIT ([`license.txt`](../license.txt)). O README original sai, então a atribuição precisa ficar.
-4. **Ambiente e instalação:** ambiente de referência e versão mínima (decisão 2); `git clone`; `venv`; atualização do `pip` (alertas A-02 e A-03); `pip install -r requirements.txt`. Um bloco para Linux/WSL e outro para PowerShell, reaproveitando os comandos do `python_pytest/README.md`.
+4. **Ambiente e instalação:** Python 3.10 ou superior em qualquer sistema operacional (decisão 2), com a tabela dos ambientes já verificados; `git clone`; `venv`; atualização do `pip` (alertas A-02 e A-03); `pip install -r requirements.txt`; conferência com `pytest -q`. Um bloco para Linux e macOS e outro para Windows, sem depender da ativação do ambiente virtual.
 5. **Testes e cobertura:** `pytest -v`; `coverage run --branch --source=src -m pytest` e `coverage report -m`; o resultado esperado (118 aprovados e 99% de cobertura de ramos); uma tabela com os 6 arquivos de teste e o que cada um cobre.
 6. **Exemplo de uso:** o código não tem ponto de entrada além dos testes, então um script curto mostra o sistema rodando fora do pytest: escova e creme dental em combo e maçã com 20%, total `34.90`. O script usa o `FakeCatalog` e o `ReceiptPrinter` de `tests/`, porque o `SupermarketCatalog` é um stub de banco, e roda a partir de `python_pytest/` com `PYTHONPATH=src:tests`.
 7. **Análise de segurança:** ambiente separado em `../.venv-audit` e o motivo (o caso do `filelock`); os comandos das três ferramentas; o Safety exige conta, e a primeira execução é interativa; resumo de antes e depois, com link para [`seguranca_antes_depois.md`](seguranca_antes_depois.md); as ressalvas do edital. **Os comandos do README mostram o resultado no terminal e não escrevem em `docs/evidencias/seguranca/`**, para que ninguém sobrescreva a evidência oficial ao seguir o README.
@@ -621,7 +621,8 @@ cd ../kata-limpo
 - Salvar em `docs/evidencias/testes/07_execucao_independente.log`, no repositório original: o commit testado (`git log -1 --oneline`), o sistema operacional, o `python --version`, a saída do `pytest -v` e o relatório de cobertura.
 - Rodar também os comandos de segurança do README. O esperado é 0 ocorrências no Bandit e 0 vulnerabilidades no pip-audit. Não salvar esses resultados como evidência nova.
 - No fim, o `git status --short` do clone deve sair vazio, o que prova que o `.gitignore` cobre `.venv`, `.coverage` e `.pytest_cache`. Depois, apagar o `../kata-limpo`.
-- No Windows, outro integrante refaz a instalação e os testes pelo PowerShell (log opcional: `07_execucao_independente_windows.log`).
+- Repetir a instalação e os testes em cada versão do Python, da 3.10 à mais recente disponível, para comprovar o mínimo declarado no README. Uma forma de obter as versões é o `uv` (`uv python install 3.10`; `uv python find 3.10` mostra o caminho do interpretador, que substitui o `python3` no comando do `venv`). Registrar o resultado no mesmo log e acrescentar a linha correspondente na tabela de ambientes do README. Uma execução preliminar, em 25/11/2026 no Ubuntu 24.04, passou com 118 testes nas versões 3.10.21, 3.11.16, 3.12.3, 3.13.15 e 3.14.6.
+- No Windows, outro integrante refaz a instalação e os testes pelo PowerShell (log opcional: `07_execucao_independente_windows.log`). Se alguém do grupo tiver macOS, repetir também nele.
 - Incluir a execução na seção 3 de [`evidencias_testes.md`](evidencias_testes.md) e ajustar a seção 7, que fala dos ambientes.
 
 ### 9.10: completar a rastreabilidade
@@ -663,8 +664,8 @@ O 9.10 não depende do README e pode ser feito em paralelo, exceto a linha do RN
 - [ ] os commits 9.0 a 9.11 foram aplicados, com 118 testes passando em cada um;
 - [ ] o `README.md` da raiz, que hoje é o original do kata, em inglês, foi reescrito e tem:
   - [ ] objetivo do trabalho e integrantes;
-  - [ ] ambiente de referência (sistema operacional, versão do Python);
-  - [ ] instalação (`python -m venv .venv`, `pip install -r requirements.txt`);
+  - [ ] requisitos de ambiente: Python 3.10 ou superior, em qualquer sistema operacional;
+  - [ ] instalação para Linux, macOS e Windows (`venv`, atualização do `pip`, `pip install -r requirements.txt`);
   - [ ] como rodar os testes e a cobertura, e um exemplo de uso;
   - [ ] como rodar o Bandit, o pip-audit e o Safety, com o ambiente separado;
   - [ ] estrutura de pastas;
