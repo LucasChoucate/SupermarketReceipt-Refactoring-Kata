@@ -2,7 +2,7 @@
 
 Este documento organiza o trabalho que falta para cumprir o edital. Ele está dividido em 10 fases, em ordem. Cada fase indica o passo do edital que cumpre, o que fazer, quais arquivos mudam e como saber que terminou.
 
-> **Situação atual.** As Fases 0 a 4 estão integradas na `develop`: documentos de análise, linha de base de segurança, testes de caracterização, refatoração com padrões de projeto e correção dos três defeitos. Os combos (Fase 5) estão concluídos na branch `feat/combos`, com 109 testes passando. Ainda faltam a regressão com combos (Fase 6), a segurança "depois", o README e a apresentação.
+> **Situação atual.** As Fases 0 a 8 estão integradas na `develop`. A Fase 9 (README, execução independente e rastreabilidade) está concluída na branch `docs/readme`, que aguarda o PR, e tem pendências que dependem do grupo (ver o [fim da Fase 9](#fase-9-readme-e-evidências-finais)). A suíte tem 118 testes passando, com 99% de cobertura de ramos. Falta a Fase 10: apresentação e entrega.
 
 ---
 
@@ -134,13 +134,13 @@ Estas decisões devem constar no plano de contingência e no README.
 
 > **Edital:** base da estratégia de reversão e de "Evidências / README" | **Branch:** `chore/organizacao`
 
-- [ ] **Criar e publicar a tag da linha de base**, que é a versão estável citada na estratégia de reversão:
+- [x] **Criar e publicar a tag da linha de base**, que é a versão estável citada na estratégia de reversão:
   ```bash
   git tag legado-baseline 58df732
   git push origin legado-baseline
   ```
-- [ ] **Incluir `*:Zone.Identifier` no `.gitignore` da raiz.** São arquivos que o Windows cria ao baixar documentos.
-- [ ] **Criar a estrutura de pastas:**
+- [x] **Incluir `*:Zone.Identifier` no `.gitignore` da raiz.** São arquivos que o Windows cria ao baixar documentos.
+- [x] **Criar a estrutura de pastas:**
   ```
   docs/
   ├── diagnostico_tecnico.md
@@ -158,9 +158,10 @@ Estas decisões devem constar no plano de contingência e no README.
   apresentacao/
   ```
   A sugestão é escrever em Markdown (versionável, com diffs visíveis nos PRs) e exportar para PDF no final. Quem preferir o Word deve exportar o PDF para essas mesmas pastas.
-- [ ] **Definir um ambiente de referência** (por exemplo, Python 3.12 em Ubuntu ou WSL) e registrá-lo no README. Hoje há três ambientes diferentes nos registros: 3.13.11 no Windows, 3.12.5 no Windows e 3.12.3 no Ubuntu.
-- [ ] **Regenerar as evidências do Passo 2:**
-  - [ ] Log da execução **original** (1 teste). Ele é gerado em um *worktree* temporário, uma cópia do commit original em outra pasta, para não mexer na branch atual:
+- [x] **Definir um ambiente de referência** (por exemplo, Python 3.12 em Ubuntu ou WSL) e registrá-lo no README. Hoje há três ambientes diferentes nos registros: 3.13.11 no Windows, 3.12.5 no Windows e 3.12.3 no Ubuntu.
+  - Decidido na Fase 9 (decisão 2): em vez de um ambiente único, o README exige o Python 3.10 ou superior em qualquer sistema operacional e lista os ambientes em que a suíte foi executada.
+- [x] **Regenerar as evidências do Passo 2:**
+  - [x] Log da execução **original** (1 teste). Ele é gerado em um *worktree* temporário, uma cópia do commit original em outra pasta, para não mexer na branch atual:
     ```bash
     REPO=$(pwd)
     git worktree add ../kata-inicial 095e831
@@ -170,7 +171,7 @@ Estas decisões devem constar no plano de contingência e no README.
     cd "$REPO"
     git worktree remove ../kata-inicial
     ```
-  - [ ] Log após a caracterização (57 testes): o `docs/evidencias/pytest_antes_ubuntu.log` já está em UTF-8 e com os nomes atuais dos testes, então serve como evidência. Remover o `pytest_antes_windows.log`, que está em UTF-16 e com um nome de teste desatualizado, ou regenerá-lo em UTF-8 no Windows (`python -m pytest -v | Out-File -Encoding utf8 <arquivo>`).
+  - [x] Log após a caracterização (57 testes): o `docs/evidencias/pytest_antes_ubuntu.log` já está em UTF-8 e com os nomes atuais dos testes, então serve como evidência. Remover o `pytest_antes_windows.log`, que está em UTF-16 e com um nome de teste desatualizado, ou regenerá-lo em UTF-8 no Windows (`python -m pytest -v | Out-File -Encoding utf8 <arquivo>`).
 
 **Pronto quando:** a tag está no remoto, a pasta `docs/` está estruturada e os logs estão em UTF-8.
 
@@ -275,12 +276,12 @@ No Windows, troque `../.venv-audit/bin/` por `..\.venv-audit\Scripts\`.
 
 Registrar em `docs/seguranca_antes_depois.md`:
 
-- [ ] **Ambiente:** versões das ferramentas, sistema operacional, versão do Python e os comandos exatos.
-- [ ] **Limitação de acesso:** se o Safety exigiu login ou conta.
-- [ ] **Escopo:** por que o Bandit cobriu só o `src/`. Os testes usam `assert`, que gera alertas B101 esperados.
-- [ ] **Triagem do `filelock`:** a origem dele e a comparação entre o ambiente contaminado e o ambiente isolado.
-- [ ] **Divergência de contagem:** a diferença entre 14 e 13 ocorrências do Safety, ou a constatação de que ela some no ambiente limpo.
-- [ ] **Tabela de classificação:**
+- [x] **Ambiente:** versões das ferramentas, sistema operacional, versão do Python e os comandos exatos.
+- [x] **Limitação de acesso:** se o Safety exigiu login ou conta.
+- [x] **Escopo:** por que o Bandit cobriu só o `src/`. Os testes usam `assert`, que gera alertas B101 esperados.
+- [x] **Triagem do `filelock`:** a origem dele e a comparação entre o ambiente contaminado e o ambiente isolado.
+- [x] **Divergência de contagem:** a diferença entre 14 e 13 ocorrências do Safety, ou a constatação de que ela some no ambiente limpo.
+- [x] **Tabela de classificação:**
 
   | ID | Ferramenta | Pacote ou arquivo | Severidade | Relevância no contexto | Ação | Justificativa |
   |---|---|---|---|---|---|---|
@@ -680,20 +681,29 @@ Verificações: os 62 nomes de teste citados existem, os 5 casos parametrizados 
 
 **Pronto quando:**
 
-- [ ] os commits 9.0 a 9.11 foram aplicados, com 118 testes passando em cada um;
-- [ ] o `README.md` da raiz, que hoje é o original do kata, em inglês, foi reescrito e tem:
-  - [ ] objetivo do trabalho e integrantes;
-  - [ ] requisitos de ambiente: Python 3.10 ou superior, em qualquer sistema operacional;
-  - [ ] instalação para Linux, macOS e Windows (`venv`, atualização do `pip`, `pip install -r requirements.txt`);
-  - [ ] como rodar os testes e a cobertura, e um exemplo de uso;
-  - [ ] como rodar o Bandit, o pip-audit e o Safety, com o ambiente separado;
-  - [ ] estrutura de pastas;
-  - [ ] decisões arquiteturais (D1 a D7) e padrões adotados, com links para a pasta `docs/`;
-  - [ ] seção "Defeitos corrigidos", resumindo DEF-01 a DEF-03 e apontando para o registro de defeitos;
-  - [ ] lições aprendidas e limitações;
-- [ ] o README foi testado do zero em um clone limpo, que é o critério "execução independente" do barema: 118 aprovados, 99% de cobertura, `git status` vazio e log salvo;
+- [x] os commits 9.0 a 9.11 foram aplicados, com 118 testes passando em cada um;
+- [x] o `README.md` da raiz, que hoje é o original do kata, em inglês, foi reescrito e tem:
+  - [x] objetivo do trabalho e integrantes;
+  - [x] requisitos de ambiente: Python 3.10 ou superior, em qualquer sistema operacional;
+  - [x] instalação para Linux, macOS e Windows (`venv`, atualização do `pip`, `pip install -r requirements.txt`);
+  - [x] como rodar os testes e a cobertura, e um exemplo de uso;
+  - [x] como rodar o Bandit, o pip-audit e o Safety, com o ambiente separado;
+  - [x] estrutura de pastas;
+  - [x] decisões arquiteturais (D1 a D7) e padrões adotados, com links para a pasta `docs/`;
+  - [x] seção "Defeitos corrigidos", resumindo DEF-01 a DEF-03 e apontando para o registro de defeitos;
+  - [x] lições aprendidas e limitações;
+- [x] o README foi testado do zero em um clone limpo, que é o critério "execução independente" do barema: 118 aprovados, 99% de cobertura, `git status` vazio e log salvo;
 - [ ] os links do README funcionam no GitHub (as âncoras com acento só podem ser conferidas lá), e o diagrama Mermaid aparece desenhado;
-- [ ] a rastreabilidade cobre RF01 a RF14, RF16 e RNF01 a RNF09 (RF → implementação → teste → evidência), com os nomes de teste conferidos.
+- [x] a rastreabilidade cobre RF01 a RF14, RF16 e RNF01 a RNF09 (RF → implementação → teste → evidência), com os nomes de teste conferidos.
+
+Commits: 9.0 `f4e4a8a`, 9.1 `8ae9d9a`, 9.2 `1622e31`, 9.3 `36e7356`, 9.4 `3e6f19b`, 9.5 `849b738`, 9.6 `1e2b7fd`, 9.7 `5ade40d`, 9.8 `0c1edd3`, 9.9 `4da45b9` e 9.10 `9d53e8a`. O 9.11 é o commit que marca esta lista. A suíte foi executada sobre o conteúdo de cada um dos commits de 9.0 a 9.10, extraído em uma pasta separada, e passou com 118 testes em todos.
+
+**Pendências que dependem do grupo:**
+
+- [ ] depois do push, conferir no GitHub os links e as âncoras do README e o diagrama Mermaid (item acima);
+- [ ] executar a instalação e os testes no Windows, pelo PowerShell, seguindo o README;
+- [ ] executar o Safety com o login de um integrante, seguindo a seção 7 do README;
+- [ ] se alguém do grupo tiver macOS, repetir a instalação e os testes nele.
 
 ---
 
@@ -715,7 +725,7 @@ Roteiro sugerido para 10 a 15 minutos:
 
 Fechamento:
 
-- [ ] Fazer o merge da `develop` na `main` por PR.
+- [ ] Fazer o merge da `develop` na `main` por PR. Até esse merge, a `main`, que é a branch padrão do GitHub, ainda tem o kata original, e o `git clone` da seção 4.1 do README entrega o código antigo.
 - [ ] Criar a tag `v1.0-entrega` e publicá-la no remoto.
 
 ---
