@@ -665,6 +665,13 @@ done
 
 O 9.10 não depende do README e pode ser feito em paralelo, exceto a linha do RNF08, que usa o log do 9.9.
 
+**Situação em 25/11/2026.** A rastreabilidade está completa: as 24 linhas da tabela correspondem aos 24 requisitos definidos (RF01 a RF14, RF16 e RNF01 a RNF09). Além do previsto acima:
+
+- quatro testes que não eram citados por nenhum requisito foram incluídos: `test_ten_percent_discount` (RF04), `test_add_bundle_offer_exige_pelo_menos_um_produto` (RF07), `test_combos_independentes_no_mesmo_carrinho` (RF09) e o cenário 15 (RF11 e RNF03). Assim, todo teste da suíte está ligado a pelo menos um requisito;
+- a mudança foi registrada no histórico de alterações do `requisitos.md` (seção 6).
+
+Verificações: os 62 nomes de teste citados existem, os 5 casos parametrizados citados (como `test_cenarios_do_roteiro[1_escova_1_creme]`) aparecem na coleta do pytest e todos os links e âncoras do documento funcionam.
+
 ### 9.11: atualizar o plano
 
 - **Fases 0 e 2:** marcar os checkboxes. Os itens já estão feitos: a tag `legado-baseline` está no remoto, o `*:Zone.Identifier` está no `.gitignore`, a estrutura de pastas existe, o log do Windows em UTF-16 foi removido e o [`seguranca_antes_depois.md`](seguranca_antes_depois.md) tem os seis itens pedidos, incluindo o `filelock` e a divergência entre 14 e 13 ocorrências.
