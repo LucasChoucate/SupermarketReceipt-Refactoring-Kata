@@ -563,7 +563,7 @@ A fase altera documentação e o `.gitignore` e acrescenta um script de exemplo,
 | 1 | Integrantes | Felipe Nogueira, Lucas Choucate, Júlia Gaglianone, Ramon Papes e Suianne Martins |
 | 2 | Ambiente | Não há um ambiente de referência único: o projeto deve rodar em **qualquer sistema operacional** com **Python 3.10 ou superior**, o mínimo exigido pelo `pytest==9.2.0`. O README traz os comandos para Linux, macOS e Windows e lista os ambientes em que a suíte já foi executada, com a evidência de cada um |
 | 3 | Lições aprendidas, elemento da seção 6 do edital que ainda não existe | Seção curta no próprio README |
-| 4 | `python_pytest/README.md`, que repete os comandos de instalação | Manter a descrição original do kata e trocar o conteúdo da seção *Setup* por um link para o README da raiz, para que haja uma única versão dos comandos. O título *Setup* fica, porque a seção 8 do [`seguranca_antes_depois.md`](seguranca_antes_depois.md#8-resultados-depois-da-modernização) aponta para `python_pytest/README.md#setup` |
+| 4 | `python_pytest/README.md`, que repete os comandos de instalação | Manter a descrição original do kata e trocar o conteúdo da seção *Setup* por um link para o README da raiz, para que haja uma única versão dos comandos. O título *Setup* fica, como no original do kata. A seção 8 do [`seguranca_antes_depois.md`](seguranca_antes_depois.md#8-resultados-depois-da-modernização), que apontava para `python_pytest/README.md#setup`, passa a apontar para a seção 4.2 do README da raiz, onde está o passo de atualização do `pip` |
 | 5 | Como executar o exemplo de uso em qualquer sistema operacional | Um script, `python_pytest/exemplo_de_uso.py`, que inclui `src/` e `tests/` no caminho de importação a partir da própria localização. Assim ele roda com um único comando, sem a variável `PYTHONPATH`, cujo separador muda entre Linux (`:`) e Windows (`;`). O pytest não o coleta, porque o nome não segue o padrão `test_*.py` |
 
 ### Commits
@@ -586,7 +586,7 @@ git switch -c docs/readme
 | 9.5 | `docs: inclui no README a estrutura de pastas e os documentos` | Seção 8 |
 | 9.6 | `docs: inclui no README as decisões, os padrões e os defeitos corrigidos` | Seções 9 a 11 |
 | 9.7 | `docs: inclui no README as lições aprendidas e as limitações` | Seção 12 |
-| 9.8 | `docs: aponta o README do python_pytest para o README da raiz` | Decisão 4 |
+| 9.8 | `docs: aponta o README do python_pytest para o README da raiz` | Decisão 4, incluindo o link da seção 8 do `seguranca_antes_depois.md` |
 | 9.9 | `docs: registra a execução do README em ambiente limpo` | `docs/evidencias/testes/07_execucao_independente.log` e uma linha nova em `evidencias_testes.md` |
 | 9.10 | `docs: completa a rastreabilidade dos requisitos` | Seção 5 de `requisitos.md` |
 | 9.11 | `docs: marca a Fase 9 como concluída no plano de execução` | Checkboxes das Fases 0, 2 e 9 e o bloco "Situação atual" |

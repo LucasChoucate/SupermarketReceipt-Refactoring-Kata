@@ -11,27 +11,10 @@ The starting position for this exercise contains the code for setting up the Tel
 
 ## Setup
 
-From this folder (`python_pytest/`):
+The setup instructions for this project are in the [root README](../README.md), written in Portuguese, with commands for Linux, macOS and Windows. The commands in these sections run from this folder (`python_pytest/`):
 
-1. Create a virtual environment.
-2. **Upgrade `pip` inside it.** Versions of `pip` below 26.2.2 have known vulnerabilities (alerts A-02 and A-03 in the [security analysis](../docs/seguranca_antes_depois.md#6-classificação-dos-alertas)).
-3. Install the pinned requirements.
-4. Run the tests with pytest.
+- [Installation](../README.md#4-instalação): Python 3.10 or later, virtual environment, `pip` upgrade and pinned requirements.
+- [Tests and coverage](../README.md#5-testes-e-cobertura).
+- [Usage example](../README.md#6-exemplo-de-uso).
 
-Linux, macOS or WSL:
-
-```bash
-python -m venv .venv
-.venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python -m pytest
-```
-
-Windows (PowerShell):
-
-```powershell
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install --upgrade pip
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m pytest
-```
+The [security analysis](../README.md#7-análise-de-segurança) commands run from the repository root.
