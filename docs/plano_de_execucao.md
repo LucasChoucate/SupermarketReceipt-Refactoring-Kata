@@ -475,23 +475,24 @@ Também cobertos: combo vencedor sem linha vazia da oferta substituída, combo u
 
 ---
 
+
 ## Fase 6: Testes de regressão
 
 > **Edital:** Passo 10 | **Barema:** 1,0 | Evita a penalidade de −3,0 | **Branch:** `test/regressao-combos`
 
 Os cenários de combo (1 a 14) entraram na Fase 5, junto com o código. Esta fase cobre a regressão e as evidências finais de testes.
 
-- [ ] **Cenário 15: caracterização com combos cadastrados para outros produtos.** Repetir os recibos de referência ([`test_recibos_de_referencia.py`](../python_pytest/tests/test_recibos_de_referencia.py)) com um combo de `shampoo` + `condicionador` cadastrado. Esses produtos não aparecem nos carrinhos de referência, então os recibos devem continuar idênticos.
-- [ ] **Evidências em `docs/evidencias/testes/`:**
-  - [ ] `06_pytest_final.log`
-  - [ ] `06_cobertura_final.txt`
-- [ ] **Tabela comparativa em `docs/evidencias_testes.md`:**
+- [x] **Cenário 15: caracterização com combos cadastrados para outros produtos.** Repetir os recibos de referência ([`test_recibos_de_referencia.py`](../python_pytest/tests/test_recibos_de_referencia.py)) com um combo de `shampoo` + `condicionador` cadastrado. Esses produtos não aparecem nos carrinhos de referência, então os recibos devem continuar idênticos.
+- [x] **Evidências em `docs/evidencias/testes/`:**
+  - [x] `06_pytest_final.log`
+  - [x] `06_cobertura_final.txt`
+- [x] **Tabela comparativa em `docs/evidencias_testes.md`:**
 
   | Métrica | Legado (início) | Depois |
   |---|---|---|
-  | Testes | 1 (original) / 57 (caracterização) | |
-  | Aprovados | 57 | |
-  | Cobertura de ramos (`src/`) | 99% | |
+  | Testes | 1 (original) / 57 (caracterização) | 118 |
+  | Aprovados | 57 | 118 |
+  | Cobertura de ramos (`src/`) | 99% | 99% |
   | Casos alterados de propósito | — | 7 (DEF-01: 3; DEF-02: 4) |
   | Testes novos de defeitos | — | 1 (DEF-03) |
   | Defeitos corrigidos | 0 de 3 | 3 de 3 |
