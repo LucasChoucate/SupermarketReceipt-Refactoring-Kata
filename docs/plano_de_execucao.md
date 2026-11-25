@@ -554,17 +554,126 @@ Os cenários de combo (1 a 14) entraram na Fase 5, junto com o código. Esta fas
 
 > **Edital:** entregável 5.9 | **Barema:** 0,5 (Evidências) + 0,5 (README) | **Branch:** `docs/readme`
 
-- [ ] **Reescrever o `README.md` da raiz**, que hoje é o original do kata, em inglês. Ele precisa ter:
+A fase só altera documentação e o `.gitignore`. O `src/` e o `tests/` não mudam, e a suíte continua com 118 testes passando em todos os commits.
+
+### Decisões da fase
+
+| # | Decisão | Escolha |
+|---|---|---|
+| 1 | Integrantes | **A definir** pelo grupo: nome e, se o professor pedir, matrícula |
+| 2 | Ambiente de referência | **A confirmar.** Proposta: Linux (Ubuntu ou WSL) com Python 3.14, o ambiente dos logs 01 a 05. A versão mínima é o Python 3.10, exigida pelo `pytest==9.2.0`. O Windows entra como "também verificado", com os logs que comprovam: Python 3.12.5 no `06_pytest_final.log` e 3.13.0 na segurança "depois" |
+| 3 | Lições aprendidas, elemento da seção 6 do edital que ainda não existe | Seção curta no próprio README |
+| 4 | `python_pytest/README.md`, que repete os comandos de instalação | Manter a descrição original do kata e trocar a seção *Setup* por um link para o README da raiz, para que haja uma única versão dos comandos |
+
+### Commits
+
+Preparação:
+
+```bash
+git switch develop
+git pull --ff-only
+git switch -c docs/readme
+```
+
+| # | Commit | O que muda |
+|---|---|---|
+| 9.0 | `docs: detalha o passo a passo da Fase 9 no plano de execução` | Esta seção |
+| 9.1 | `chore: ignora os arquivos de cobertura` | `.coverage` e `htmlcov/` no `python_pytest/.gitignore`. Sem isso, quem segue o README e roda a cobertura fica com um `.coverage` não rastreado |
+| 9.2 | `docs: reescreve o README da raiz com objetivo, ambiente e instalação` | Seções 1 a 4 do roteiro abaixo |
+| 9.3 | `docs: inclui no README os testes, a cobertura e um exemplo de uso` | Seções 5 e 6 |
+| 9.4 | `docs: inclui no README a análise de segurança` | Seção 7 |
+| 9.5 | `docs: inclui no README a estrutura de pastas e os documentos` | Seção 8 |
+| 9.6 | `docs: inclui no README as decisões, os padrões e os defeitos corrigidos` | Seções 9 a 11 |
+| 9.7 | `docs: inclui no README as lições aprendidas e as limitações` | Seção 12 |
+| 9.8 | `docs: aponta o README do python_pytest para o README da raiz` | Decisão 4 |
+| 9.9 | `docs: registra a execução do README em ambiente limpo` | `docs/evidencias/testes/07_execucao_independente.log` e uma linha nova em `evidencias_testes.md` |
+| 9.10 | `docs: completa a rastreabilidade dos requisitos` | Seção 5 de `requisitos.md` |
+| 9.11 | `docs: marca a Fase 9 como concluída no plano de execução` | Checkboxes das Fases 0, 2 e 9 e o bloco "Situação atual" |
+
+Depois do 9.11: push, PR para a `develop` e revisão por outro integrante, de preferência quem usa Windows, que também refaz o 9.9 no PowerShell.
+
+### Roteiro do README (commits 9.2 a 9.7)
+
+1. **Objetivo:** modernização do legado (caracterização, refatoração com padrões de projeto, combos e segurança), com a disciplina e o professor.
+2. **Integrantes** (decisão 1).
+3. **Créditos:** kata original de Emily Bache, licença MIT ([`license.txt`](../license.txt)). O README original sai, então a atribuição precisa ficar.
+4. **Ambiente e instalação:** ambiente de referência e versão mínima (decisão 2); `git clone`; `venv`; atualização do `pip` (alertas A-02 e A-03); `pip install -r requirements.txt`. Um bloco para Linux/WSL e outro para PowerShell, reaproveitando os comandos do `python_pytest/README.md`.
+5. **Testes e cobertura:** `pytest -v`; `coverage run --branch --source=src -m pytest` e `coverage report -m`; o resultado esperado (118 aprovados e 99% de cobertura de ramos); uma tabela com os 6 arquivos de teste e o que cada um cobre.
+6. **Exemplo de uso:** o código não tem ponto de entrada além dos testes, então um script curto mostra o sistema rodando fora do pytest: escova e creme dental em combo e maçã com 20%, total `34.90`. O script usa o `FakeCatalog` e o `ReceiptPrinter` de `tests/`, porque o `SupermarketCatalog` é um stub de banco, e roda a partir de `python_pytest/` com `PYTHONPATH=src:tests`.
+7. **Análise de segurança:** ambiente separado em `../.venv-audit` e o motivo (o caso do `filelock`); os comandos das três ferramentas; o Safety exige conta, e a primeira execução é interativa; resumo de antes e depois, com link para [`seguranca_antes_depois.md`](seguranca_antes_depois.md); as ressalvas do edital. **Os comandos do README mostram o resultado no terminal e não escrevem em `docs/evidencias/seguranca/`**, para que ninguém sobrescreva a evidência oficial ao seguir o README.
+8. **Estrutura de pastas:** a árvore do repositório e uma tabela de documento → entregável do edital: diagnóstico (5.1), requisitos (5.2), plano de contingência (5.3), padrões de projeto (5.5), segurança (5.8) e evidências de testes (5.9), além do registro de defeitos e deste plano.
+9. **Arquitetura e padrões:** Strategy, Template Method, Simple Factory e a fachada `handle_offers`, com o diagrama Mermaid "depois" de [`padroes_projeto.md`](padroes_projeto.md).
+10. **Regra dos combos e decisões D1 a D7:** a fórmula, a tabela "Quem vence" e uma linha por decisão, com link para a [seção 8 do plano de contingência](plano_contingencia.md#8-decisões-registradas).
+11. **Defeitos corrigidos:** tabela de DEF-01 a DEF-03 (cenário, valor no legado, valor corrigido e commit), com link para o [registro de defeitos](registro_de_defeitos.md).
+12. **Lições aprendidas e limitações:** separar refatoração de correção (D3); isolar as ferramentas de auditoria (`filelock`); remover a dependência sem uso (D7: de 22 para 6 pacotes auditados); o `float` como risco remanescente; a escolha da ordem feita para o carrinho inteiro; o Safety dependente de conta; as evidências geradas em ambientes diferentes.
+
+### 9.9: testar o README do zero
+
+Clonar a partir do repositório local, para que só o que foi commitado entre no teste. Um arquivo não rastreado que faz o projeto funcionar na máquina de quem desenvolve não aparece no clone.
+
+```bash
+git clone --branch docs/readme "$PWD" ../kata-limpo
+cd ../kata-limpo
+```
+
+- Copiar os comandos **do próprio README**, e não de memória.
+- Se algum passo falhar ou exigir algo que o README não diz, corrigir o README em um novo commit e recomeçar de um clone novo.
+- Salvar em `docs/evidencias/testes/07_execucao_independente.log`, no repositório original: o commit testado (`git log -1 --oneline`), o sistema operacional, o `python --version`, a saída do `pytest -v` e o relatório de cobertura.
+- Rodar também os comandos de segurança do README. O esperado é 0 ocorrências no Bandit e 0 vulnerabilidades no pip-audit. Não salvar esses resultados como evidência nova.
+- No fim, o `git status --short` do clone deve sair vazio, o que prova que o `.gitignore` cobre `.venv`, `.coverage` e `.pytest_cache`. Depois, apagar o `../kata-limpo`.
+- No Windows, outro integrante refaz a instalação e os testes pelo PowerShell (log opcional: `07_execucao_independente_windows.log`).
+- Incluir a execução na seção 3 de [`evidencias_testes.md`](evidencias_testes.md) e ajustar a seção 7, que fala dos ambientes.
+
+### 9.10: completar a rastreabilidade
+
+Hoje a tabela da seção 5 de [`requisitos.md`](requisitos.md) não tem RNF04 a RNF08. Proposta:
+
+| ID | Arquivo / classe | Testes | Evidência |
+|---|---|---|---|
+| RNF04 | `discount_engine.py` | `test_ofertas_de_produtos_diferentes_coexistem_na_mesma_compra`, `test_escolhe_a_ordem_de_menor_total`, `test_cadastrar_um_combo_nunca_encarece_o_carrinho` | `06_pytest_final.log` |
+| RNF05 | `python_pytest/tests/` (118 testes) | Suíte completa | Logs 01 a 06, coberturas 02 a 06 e `evidencias_testes.md` |
+| RNF06 | `src/` em inglês com docstrings PEP 257; testes e documentos em português | Inspeção | Commit `703bc9d` e as [regras gerais](#regras-gerais) |
+| RNF07 | Não se aplica | Inspeção | `seguranca_antes_depois.md` e `evidencias/seguranca/antes` e `depois` |
+| RNF08 | `README.md` e `requirements.txt` com versões fixadas | Execução do README do zero | `07_execucao_independente.log` |
+
+Além disso:
+
+- incluir o `06_pytest_final.log` como evidência final em todas as linhas;
+- citar o cenário 15 (`test_recibo_de_referencia_com_combo_de_outros_produtos`) no RF11 e no RNF03;
+- reescrever a abertura da seção 5, que ainda diz que as colunas "são completadas ao longo das Fases 4 a 6".
+
+Depois da edição, conferir que todo teste citado existe:
+
+```bash
+for t in $(grep -oE '`test_[a-z0-9_]+(\[|`)' docs/requisitos.md | tr -d '`[' | sort -u); do
+  grep -rqE "def $t\b" python_pytest/tests || echo "não existe: $t"
+done
+```
+
+O 9.10 não depende do README e pode ser feito em paralelo, exceto a linha do RNF08, que usa o log do 9.9.
+
+### 9.11: atualizar o plano
+
+- **Fases 0 e 2:** marcar os checkboxes. Os itens já estão feitos: a tag `legado-baseline` está no remoto, o `*:Zone.Identifier` está no `.gitignore`, a estrutura de pastas existe, o log do Windows em UTF-16 foi removido e o [`seguranca_antes_depois.md`](seguranca_antes_depois.md) tem os seis itens pedidos, incluindo o `filelock` e a divergência entre 14 e 13 ocorrências.
+- **Fase 9:** marcar os itens abaixo e registrar os hashes dos commits.
+- **"Situação atual"**, no início do documento: Fases 0 a 9 concluídas; falta a Fase 10.
+
+**Pronto quando:**
+
+- [ ] os commits 9.0 a 9.11 foram aplicados, com 118 testes passando em cada um;
+- [ ] o `README.md` da raiz, que hoje é o original do kata, em inglês, foi reescrito e tem:
   - [ ] objetivo do trabalho e integrantes;
   - [ ] ambiente de referência (sistema operacional, versão do Python);
   - [ ] instalação (`python -m venv .venv`, `pip install -r requirements.txt`);
-  - [ ] como rodar os testes e a cobertura;
+  - [ ] como rodar os testes e a cobertura, e um exemplo de uso;
   - [ ] como rodar o Bandit, o pip-audit e o Safety, com o ambiente separado;
   - [ ] estrutura de pastas;
   - [ ] decisões arquiteturais (D1 a D7) e padrões adotados, com links para a pasta `docs/`;
-  - [ ] seção "Defeitos corrigidos", resumindo DEF-01 a DEF-03 e apontando para o registro de defeitos.
-- [ ] **Testar o README do zero** em uma máquina ou pasta limpa. É o critério "execução independente" do barema.
-- [ ] **Completar a coluna de rastreabilidade** dos requisitos (RF → implementação → teste → evidência).
+  - [ ] seção "Defeitos corrigidos", resumindo DEF-01 a DEF-03 e apontando para o registro de defeitos;
+  - [ ] lições aprendidas e limitações;
+- [ ] o README foi testado do zero em um clone limpo, que é o critério "execução independente" do barema: 118 aprovados, 99% de cobertura, `git status` vazio e log salvo;
+- [ ] os links do README funcionam no GitHub (as âncoras com acento só podem ser conferidas lá);
+- [ ] a rastreabilidade cobre RF01 a RF14, RF16 e RNF01 a RNF09 (RF → implementação → teste → evidência), com os nomes de teste conferidos.
 
 ---
 
