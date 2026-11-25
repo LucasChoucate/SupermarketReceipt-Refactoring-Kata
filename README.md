@@ -15,7 +15,8 @@ Trabalho prático da disciplina **Alta Qualidade de Software**, ministrada pelo 
 9. [Arquitetura e padrões de projeto](#9-arquitetura-e-padrões-de-projeto)
 10. [Combos promocionais e decisões registradas](#10-combos-promocionais-e-decisões-registradas)
 11. [Defeitos corrigidos](#11-defeitos-corrigidos)
-12. [Créditos e licença](#créditos-e-licença)
+12. [Lições aprendidas e limitações](#12-lições-aprendidas-e-limitações)
+13. [Créditos e licença](#créditos-e-licença)
 
 ---
 
@@ -341,6 +342,8 @@ Onde está cada entregável do edital:
 | 5.9 Evidências, README e organização | Este README, [`docs/evidencias_testes.md`](docs/evidencias_testes.md) e [`docs/evidencias/`](docs/evidencias/) |
 | 5.10 Apresentação | [`apresentacao/`](apresentacao/) |
 
+Os documentos também cobrem os elementos da documentação simplificada inspirada no MPS.BR (seção 6 do edital): contexto e diagnóstico, no diagnóstico técnico e no registro de defeitos; requisitos, no documento de requisitos; riscos e contingência, no plano de contingência; testes e validação, nas evidências de testes; padrões e arquitetura, no documento de padrões de projeto; segurança, na análise de segurança; e lições aprendidas, na [seção 12](#12-lições-aprendidas-e-limitações) deste README.
+
 ---
 
 ## 9. Arquitetura e padrões de projeto
@@ -516,6 +519,29 @@ Os testes de caracterização e o diagnóstico revelaram três defeitos no legad
 Com o Template Method, o DEF-01 e o DEF-02 foram corrigidos em um único método, o `GroupPriceOffer.apply()`. No legado, o DEF-02 estava repetido em três blocos de código.
 
 As correções mudaram de propósito **7 casos de teste** (3 do DEF-01 e 4 do DEF-02) e acrescentaram 1 teste para o DEF-03. Todos os outros testes continuaram com os mesmos valores esperados. Os casos alterados estão nas [evidências de testes](docs/evidencias_testes.md#6-casos-alterados-de-propósito), e a causa, o impacto e a correção de cada defeito, no [registro de defeitos](docs/registro_de_defeitos.md).
+
+---
+
+## 12. Lições aprendidas e limitações
+
+### 12.1 Lições aprendidas
+
+- **Caracterizar antes de refatorar revelou defeitos.** O único teste original cadastrava um desconto para a escova, mas só colocava maçãs no carrinho, e não detectava nenhum dos três defeitos. Ao fixar o comportamento de cada oferta, os testes de caracterização mostraram valores que contrariavam a regra de negócio, como o "2 por valor" que cobrava mais do que sem a oferta (DEF-01) e a fração de produto por peso que saía de graça (DEF-02). Registrar o comportamento correto em testes `xfail(strict=True)` transformou cada defeito em um teste que falhava até ser corrigido.
+- **Separar refatoração de correção torna cada mudança verificável.** O PR da refatoração não alterou nenhum teste existente, e os testes dos defeitos continuaram falhando, o que provou que a estrutura mudou sem mudar o comportamento. O PR das correções mostrou só os 7 valores alterados de propósito, e cada correção pode ser revertida sozinha.
+- **Um padrão se justifica pelo problema que resolve.** O Template Method transformou um defeito repetido em três blocos de código em uma correção de um só método. O Strategy permitiu acrescentar os combos sem remover nenhuma linha das estratégias existentes.
+- **Uma regra nova precisa de uma política explícita de convivência com as antigas.** Dar sempre prioridade ao combo encarecia alguns carrinhos, e comparar só os percentuais das ofertas levava a escolhas erradas. A solução foi calcular as duas ordens e testar uma propriedade, "cadastrar um combo nunca encarece o carrinho", além dos exemplos.
+- **Ferramentas de auditoria precisam de um ambiente isolado, e cada alerta precisa de triagem.** As 13 vulnerabilidades do `filelock` eram da própria ferramenta, e não do projeto. Na reavaliação, uma primeira tentativa fixou o `pytest` em 8.3.5, uma versão dentro da faixa vulnerável, e o alerta, que antes era ignorado pela política, passou a contar como ocorrência. Fixar a versão só resolve quando a versão escolhida está fora da faixa.
+- **Menos dependências significam menos superfície de ataque.** O `approvaltests` não era usado por nenhum teste, mas trazia a maior parte das dependências. Removê-lo reduziu os pacotes auditados de 22 para 6.
+- **A reprodutibilidade depende de detalhes do ambiente.** Redirecionar a saída do Safety com `>` escondeu a pergunta interativa da primeira execução, e no PowerShell ainda gravou o arquivo em UTF-16. O comando do Python muda entre sistemas (`python3` ou `python`), e o PowerShell bloqueia o script de ativação do ambiente virtual por padrão. Por isso o README chama o Python do ambiente pelo caminho e traz os comandos de cada sistema.
+
+### 12.2 Limitações
+
+- **Valores monetários em `float`.** O tipo foi mantido para não alterar os valores observados pelos testes (RNF09). O recibo arredonda para 2 casas, e a escolha entre ofertas e combos compara os totais em centavos, mas a imprecisão do `float` continua sendo um risco remanescente.
+- **A política de combos decide pelo carrinho inteiro.** Ela compara duas ordens de aplicação, e não todas as distribuições possíveis entre ofertas e combos.
+- **Inversão de dependência incompleta.** O `Teller` cria o `DiscountEngine` e os combos diretamente, para preservar o construtor `Teller(catalog)`, e cada tipo novo de oferta exige uma entrada na fábrica.
+- **Cobertura não é completude.** Os 99% de cobertura mostram que todo o código foi executado pelos testes, e não que todos os casos possíveis foram testados.
+- **Limites das ferramentas de segurança.** O Safety exige conta e aplica uma política guardada na nuvem. O pip-audit e o Safety só conhecem vulnerabilidades já publicadas, e nenhuma das três ferramentas analisa o sistema em execução.
+- **Evidências de ambientes diferentes.** Os logs foram gerados em máquinas diferentes, com Linux e Windows e versões diferentes do Python. A comparação entre eles vale pelas contagens de testes e pela cobertura, e não pelo tempo de execução.
 
 ---
 
