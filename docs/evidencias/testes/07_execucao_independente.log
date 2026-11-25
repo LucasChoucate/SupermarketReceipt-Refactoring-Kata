@@ -1,7 +1,7 @@
 # Execução independente do README (Fase 9, passo 9.9)
 
-Data: 25/11/2026 19:09 -03
-Commit testado: 0c1edd3 docs: aponta o README do python_pytest para o README da raiz (branch docs/readme)
+Data: 25/11/2026 19:37 -03
+Commit testado: e76d362 docs: marca a Fase 9 como concluída no plano de execução (branch docs/readme)
 Sistema: Ubuntu 24.04.5 LTS, kernel 7.0.0-43-generic
 Pasta: clone novo do repositório local, sem nenhum arquivo além dos commitados.
        A seção 4.1 (git clone do GitHub) foi substituída por esse clone, porque a
@@ -70,7 +70,7 @@ Successfully installed coverage-7.6.12 iniconfig-2.3.1 packaging-26.4 pluggy-1.7
 $ .venv/bin/python -m pytest -q
 ........................................................................ [ 61%]
 ..............................................                           [100%]
-118 passed in 0.10s
+118 passed in 0.11s
 
 $ .venv/bin/python -m pytest -v
 ============================= test session starts ==============================
@@ -200,12 +200,12 @@ tests/test_recibos_de_referencia.py::test_recibo_de_referencia_com_combo_de_outr
 tests/test_recibos_de_referencia.py::test_recibo_de_referencia_com_combo_de_outros_produtos[varias_ofertas] PASSED [ 99%]
 tests/test_supermarket.py::test_ten_percent_discount PASSED              [100%]
 
-============================= 118 passed in 0.07s ==============================
+============================= 118 passed in 0.08s ==============================
 
 $ .venv/bin/python -m coverage run --branch --source=src -m pytest -q
 ........................................................................ [ 61%]
 ..............................................                           [100%]
-118 passed in 0.24s
+118 passed in 0.23s
 
 $ .venv/bin/python -m coverage report -m
 Name                       Stmts   Miss Branch BrPart  Cover   Missing
@@ -339,7 +339,7 @@ $ .venv/bin/python -m pytest -q
 $ .venv/bin/python -m pytest -v
 tests/test_supermarket.py::test_ten_percent_discount PASSED              [100%]
 
-============================= 118 passed in 0.06s ==============================
+============================= 118 passed in 0.07s ==============================
 
 $ .venv/bin/python -m coverage run --branch --source=src -m pytest -q
 ........................................................................ [ 61%]
@@ -607,7 +607,7 @@ $ ../.venv-audit/bin/bandit -r python_pytest/src
 [main]	INFO	cli include tests: None
 [main]	INFO	cli exclude tests: None
 [main]	INFO	running on Python 3.14.6
-Run started:2026-11-25 22:09:46.153035+00:00
+Run started:2026-11-25 22:38:08.195863+00:00
 
 Test results:
 	No issues identified.

@@ -627,7 +627,7 @@ cd ../kata-limpo
 - No Windows, outro integrante refaz a instalação e os testes pelo PowerShell (log opcional: `07_execucao_independente_windows.log`). Se alguém do grupo tiver macOS, repetir também nele.
 - Incluir a execução na seção 3 de [`evidencias_testes.md`](evidencias_testes.md) e ajustar a seção 7, que fala dos ambientes.
 
-**Situação em 25/11/2026.** A execução no Linux está feita e registrada em [`07_execucao_independente.log`](evidencias/testes/07_execucao_independente.log), sobre o commit `0c1edd3`, no Ubuntu 24.04:
+**Situação em 25/11/2026.** A execução no Linux está feita e registrada em [`07_execucao_independente.log`](evidencias/testes/07_execucao_independente.log), sobre o commit `e76d362` (9.11, com o estado final da fase), no Ubuntu 24.04:
 
 - os comandos foram extraídos dos blocos `bash` do próprio README do clone, sem edição, exceto o interpretador do `venv` nas versões 3.10 a 3.13;
 - com o `python3` do sistema (3.14.6) e com as versões 3.10.21, 3.11.16, 3.12.3 e 3.13.15, a suíte deu 118 aprovados e 99% de cobertura, e o exemplo de uso imprimiu o total `34.90`;
@@ -696,7 +696,9 @@ Verificações: os 62 nomes de teste citados existem, os 5 casos parametrizados 
 - [ ] os links do README funcionam no GitHub (as âncoras com acento só podem ser conferidas lá), e o diagrama Mermaid aparece desenhado;
 - [x] a rastreabilidade cobre RF01 a RF14, RF16 e RNF01 a RNF09 (RF → implementação → teste → evidência), com os nomes de teste conferidos.
 
-Commits: 9.0 `f4e4a8a`, 9.1 `8ae9d9a`, 9.2 `1622e31`, 9.3 `36e7356`, 9.4 `3e6f19b`, 9.5 `849b738`, 9.6 `1e2b7fd`, 9.7 `5ade40d`, 9.8 `0c1edd3`, 9.9 `4da45b9` e 9.10 `9d53e8a`. O 9.11 é o commit que marca esta lista. A suíte foi executada sobre o conteúdo de cada um dos commits de 9.0 a 9.10, extraído em uma pasta separada, e passou com 118 testes em todos.
+Commits: 9.0 `cf8dda8`, 9.1 `0d651bd`, 9.2 `babbd21`, 9.3 `0b482a1`, 9.4 `bcbb485`, 9.5 `4f76d27`, 9.6 `36d41e7`, 9.7 `fd29421`, 9.8 `388542b`, 9.9 `995bff7`, 9.10 `ea0d5fd` e 9.11 `e76d362`. A suíte foi executada sobre o conteúdo de cada um desses commits, extraído em uma pasta separada, e passou com 118 testes em todos.
+
+Os hashes acima são os da reescrita feita em 25/11/2026 para corrigir o e-mail do autor, configurado por engano nos commits da fase. A reescrita trocou só o e-mail e as datas dos commits: o conteúdo de cada um é idêntico ao do original, arquivo por arquivo. Um commit posterior atualizou os hashes citados neste plano e regenerou o [`07_execucao_independente.log`](evidencias/testes/07_execucao_independente.log) sobre o commit `e76d362`, com os mesmos resultados.
 
 **Pendências que dependem do grupo:**
 
