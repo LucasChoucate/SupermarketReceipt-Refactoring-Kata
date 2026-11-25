@@ -12,7 +12,10 @@ Trabalho prático da disciplina **Alta Qualidade de Software**, ministrada pelo 
 6. [Exemplo de uso](#6-exemplo-de-uso)
 7. [Análise de segurança](#7-análise-de-segurança)
 8. [Estrutura de pastas e documentos](#8-estrutura-de-pastas-e-documentos)
-9. [Créditos e licença](#créditos-e-licença)
+9. [Arquitetura e padrões de projeto](#9-arquitetura-e-padrões-de-projeto)
+10. [Combos promocionais e decisões registradas](#10-combos-promocionais-e-decisões-registradas)
+11. [Defeitos corrigidos](#11-defeitos-corrigidos)
+12. [Créditos e licença](#créditos-e-licença)
 
 ---
 
@@ -337,6 +340,182 @@ Onde está cada entregável do edital:
 | 5.8 Análise de segurança | [`docs/seguranca_antes_depois.md`](docs/seguranca_antes_depois.md) e [`docs/evidencias/seguranca/`](docs/evidencias/seguranca/) |
 | 5.9 Evidências, README e organização | Este README, [`docs/evidencias_testes.md`](docs/evidencias_testes.md) e [`docs/evidencias/`](docs/evidencias/) |
 | 5.10 Apresentação | [`apresentacao/`](apresentacao/) |
+
+---
+
+## 9. Arquitetura e padrões de projeto
+
+### 9.1 O problema do legado
+
+No legado, o método `ShoppingCart.handle_offers()` calculava sozinho todas as ofertas, com uma cadeia de condicionais sobre o tipo da oferta. A fórmula das ofertas por grupo estava copiada três vezes, com os defeitos DEF-01 e DEF-02 junto, e qualquer modalidade nova, como os combos, exigiria alterar esse método. A análise completa está no [diagnóstico técnico](docs/diagnostico_tecnico.md).
+
+### 9.2 Padrões adotados
+
+| Padrão | Onde | Problema que resolve |
+|---|---|---|
+| **Strategy** | `DiscountPolicy` e suas subclasses `PercentageOffer`, `GroupPriceOffer` e `BundleOffer`, em `discount_policies.py` | Cada tipo de oferta virou uma classe com o próprio cálculo, no lugar da cadeia de condicionais. Os combos entraram como uma estratégia nova, sem alterar as existentes |
+| **Template Method** | `GroupPriceOffer.apply()`, com os ganchos `group_size()`, `group_price()` e `description()` implementados por `ThreeForTwo`, `TwoForAmount` e `FiveForAmount` | As três fórmulas copiadas viraram um único algoritmo, e os defeitos DEF-01 e DEF-02 passaram a ser corrigidos em um só lugar |
+| **Simple Factory** | `create_policy(offer)`, em `discount_policies.py` | Traduz o `SpecialOfferType` da interface pública para a estratégia correspondente, sem nenhum `if` por tipo de oferta |
+
+Os dois padrões exigidos pelo edital são atendidos pelo Strategy e pelo Template Method. A fábrica é chamada de *Simple Factory*, e não de *Factory Method* do GoF, porque é uma função com um dicionário, e não uma hierarquia de classes criadoras.
+
+Completam a estrutura:
+
+- o **`DiscountEngine`** (`discount_engine.py`), que aplica as estratégias em sequência, controla as unidades já consumidas por cada uma e decide entre ofertas e combos ([seção 10.2](#102-convivência-com-as-ofertas-existentes));
+- o **`ShoppingCart.handle_offers()`**, mantido como fachada de compatibilidade: a assinatura é a mesma, e o cálculo é delegado ao `DiscountEngine`.
+
+### 9.3 Diagrama de classes
+
+```mermaid
+classDiagram
+    class DiscountPolicy {
+        <<abstract>>
+        +apply(available, catalog) PolicyResult*
+        +products() tuple*
+    }
+    class GroupPriceOffer {
+        <<abstract>>
+        +apply(available, catalog) PolicyResult
+        +group_size() int*
+        +group_price(unit_price) float*
+        +description() str*
+    }
+    class BundleOffer {
+        +required: dict
+        +percent
+    }
+    class create_policy {
+        <<Simple Factory>>
+    }
+    class DiscountEngine {
+        +apply(receipt, quantities, offers, catalog, bundles)
+    }
+    class Teller {
+        +add_special_offer(offer_type, product, argument)
+        +add_bundle_offer(products, percent)
+        +checks_out_articles_from(the_cart) Receipt
+    }
+    class ShoppingCart {
+        +add_item_quantity(product, quantity)
+        +handle_offers(receipt, offers, catalog)
+    }
+
+    DiscountPolicy <|-- PercentageOffer
+    DiscountPolicy <|-- GroupPriceOffer
+    DiscountPolicy <|-- BundleOffer
+    GroupPriceOffer <|-- ThreeForTwo
+    GroupPriceOffer <|-- TwoForAmount
+    GroupPriceOffer <|-- FiveForAmount
+    create_policy ..> DiscountPolicy : cria
+    DiscountEngine --> DiscountPolicy : aplica
+    DiscountEngine ..> create_policy : usa
+    Teller --> DiscountEngine
+    Teller ..> BundleOffer : cria em add_bundle_offer
+    ShoppingCart ..> DiscountEngine : handle_offers (fachada)
+```
+
+Os métodos marcados com `*` são abstratos. Os diagramas completos de antes e depois, os trechos de código antes e depois e os testes de cada padrão estão em [`docs/padroes_projeto.md`](docs/padroes_projeto.md#2-diagramas-de-classes).
+
+### 9.4 Princípios SOLID
+
+| Princípio | Como aparece no código |
+|---|---|
+| SRP | O carrinho só guarda produtos e quantidades. Cada estratégia calcula um tipo de desconto, e o `DiscountEngine` orquestra as estratégias |
+| OCP | Os combos entraram como uma classe nova: o `discount_policies.py` ganhou 46 linhas e não perdeu nenhuma. O engine mudou, porque a convivência entre combos e ofertas é uma regra nova de orquestração ([demonstração](docs/padroes_projeto.md#9-demonstração-de-extensibilidade-os-combos)) |
+| LSP | O engine aplica qualquer `DiscountPolicy` da mesma forma. O `BundleOffer`, criado depois, é aplicado pelo mesmo código que as ofertas antigas |
+| ISP | A `DiscountPolicy` tem só dois métodos. Os ganchos das ofertas por grupo ficam em `GroupPriceOffer`, e não na interface geral |
+| DIP | O engine depende da abstração `DiscountPolicy`, e o `Teller` depende só do contrato de `SupermarketCatalog` (correção do DEF-03). A inversão não é completa: o `Teller` cria o engine e os combos diretamente, para preservar o construtor `Teller(catalog)` ([limitações](docs/padroes_projeto.md#10-limitações)) |
+
+### 9.5 Interfaces públicas preservadas
+
+A refatoração e os combos não mudaram nenhuma interface pública existente: `Teller(catalog)`, `add_special_offer()`, `checks_out_articles_from()`, `product_with_name()` e `offers`; os métodos e propriedades de `ShoppingCart`, incluindo o `handle_offers()`; o `Receipt`; e o `SpecialOfferType`, com os mesmos membros e valores. Os testes de contrato da caracterização protegem essas interfaces, e a lista completa está no [plano de contingência](docs/plano_contingencia.md#3-interfaces-que-devem-permanecer-compatíveis). Tudo o que foi criado é aditivo, como o `Teller.add_bundle_offer()`.
+
+---
+
+## 10. Combos promocionais e decisões registradas
+
+### 10.1 A regra dos combos
+
+Um combo é cadastrado com a lista dos seus produtos. Um produto repetido na lista significa que o combo exige mais de uma unidade dele, e o percentual padrão é 10%:
+
+```python
+teller.add_bundle_offer([escova, creme_dental])
+```
+
+O desconto incide só sobre as unidades que formam combos completos:
+
+```text
+nº de combos = menor valor de ⌊quantidade no carrinho ÷ quantidade exigida⌋ entre os produtos do combo
+desconto     = 10% × nº de combos × soma dos preços dos produtos do combo
+```
+
+Com a escova a R$ 10,00 e o creme dental a R$ 15,00, os cenários do edital ficam assim:
+
+| Carrinho | Combos | Desconto | Total |
+|---|---|---|---|
+| 1 escova + 1 creme dental | 1 | R$ 2,50 | R$ 22,50 |
+| 2 escovas + 1 creme dental | 1 | R$ 2,50 | R$ 32,50 (a segunda escova a preço cheio) |
+| 2 escovas + 2 cremes dentais | 2 | R$ 5,00 | R$ 45,00 |
+| Só 1 escova | 0 | nenhum | R$ 10,00 |
+
+No recibo, cada produto do combo gera uma linha de desconto com a descrição `combo 10% off` (decisão D4). Nos produtos vendidos por peso, só a parte inteira da quantidade forma combos.
+
+### 10.2 Convivência com as ofertas existentes
+
+Um produto pode ter uma oferta individual, como o "3 por 2", e também fazer parte de um combo. Cada unidade recebe no máximo um desconto, mas dar sempre prioridade ao combo encareceria alguns carrinhos. Com a escova em "3 por 2", o carrinho de 3 escovas e 1 creme dental custa R$ 35,00 com a oferta; se o combo usar 1 escova e 1 creme, as 2 escovas restantes não ativam o "3 por 2", e o total sobe para R$ 42,50.
+
+Por isso o `DiscountEngine` calcula o carrinho de duas formas e fica com a de menor total (decisão D1):
+
+- **Ordem C (ofertas primeiro):** as ofertas individuais são aplicadas como seriam sem combos, e os combos usam só as unidades que sobraram.
+- **Ordem B (combos primeiro):** os combos são aplicados primeiro, e as ofertas individuais usam só as unidades que sobraram.
+
+Os totais são comparados em centavos, para que erros de arredondamento não decidam a escolha. Em empate, vence a ordem C, e as ofertas preexistentes continuam no recibo.
+
+| Escova (R$ 10,00) com | Carrinho | Ordem C | Ordem B | Escolhida |
+|---|---|---|---|---|
+| "3 por 2" | 3 escovas + 1 creme | **R$ 35,00** | R$ 42,50 | C: a oferta |
+| 20% de desconto | 1 escova + 1 creme | R$ 23,00 | **R$ 22,50** | B: o combo |
+| "5 por R$ 40,00" | 5 escovas + 5 cremes | R$ 115,00 | **R$ 112,50** | B: o combo |
+| "2 por R$ 15,00" | 2 escovas + 2 cremes | R$ 45,00 | R$ 45,00 | C: empate, fica a oferta |
+
+O que essa política garante:
+
+- **Cadastrar um combo nunca encarece o carrinho.** O resultado nunca é maior que o da ordem C, e a ordem C só acrescenta descontos ao cálculo sem combos.
+- **Não há desconto duplicado**, porque cada unidade é consumida por uma única estratégia.
+- **Um carrinho sem combo completo gera o mesmo recibo** que geraria sem combos cadastrados.
+- **O recibo só muda quando o combo traz ganho real** para o cliente.
+
+Limitação: a escolha vale para o carrinho inteiro. Distribuições mistas, como um combo primeiro e outra oferta primeiro no mesmo carrinho, não são testadas, porque isso exigiria avaliar todas as combinações. O detalhamento está no [plano de execução](docs/plano_de_execucao.md#política-de-convivência-entre-combos-e-ofertas).
+
+### 10.3 Decisões registradas
+
+| ID | Decisão | Escolha |
+|---|---|---|
+| D1 | Convivência entre combo e oferta | A ordem de menor total entre ofertas primeiro (C) e combos primeiro (B), comparada em centavos. Em empate, ficam as ofertas |
+| D2 | Defeitos do legado | Corrigir os três ([seção 11](#11-defeitos-corrigidos)) |
+| D3 | Momento e forma das correções | Depois da refatoração estrutural, em uma branch própria, com um commit `fix:` por defeito, cada um precedido de um teste `xfail(strict=True)` do comportamento correto |
+| D4 | Combo no recibo | Um `Discount` por produto do combo, com a descrição `combo 10% off`. O `Discount` e o `ReceiptPrinter` não mudam |
+| D5 | API do combo | Nova e aditiva: `Teller.add_bundle_offer(products, percent=10)`. O `SpecialOfferType`, o `Teller.offers` e o `add_special_offer()` não mudam |
+| D6 | Dois combos disputando o mesmo produto | Vence o combo cadastrado primeiro |
+| D7 | Biblioteca `approvaltests` | Removida: nenhum teste a usava, e a remoção reduziu os pacotes auditados de 22 para 6 |
+
+As justificativas de cada decisão estão no [plano de contingência](docs/plano_contingencia.md#8-decisões-registradas).
+
+---
+
+## 11. Defeitos corrigidos
+
+Os testes de caracterização e o diagnóstico revelaram três defeitos no legado. A equipe decidiu corrigir todos (D2). As correções foram feitas depois da refatoração estrutural, para separar mudança de estrutura de mudança de comportamento (D3). Cada uma tem um commit `fix:` próprio, precedido de um teste do comportamento correto marcado com `xfail(strict=True)`, que falhava enquanto o defeito existia.
+
+| ID | Defeito | Severidade | Exemplo | Legado | Corrigido | Commit |
+|---|---|---|---|---|---|---|
+| DEF-01 | No "2 por valor" com quantidade ímpar, a unidade que sobra era cobrada duas vezes (divisão `/` no lugar de `//`) | Alta: a oferta encarecia a compra | 3 escovas a R$ 10,00 em "2 por R$ 15,00" | R$ 32,50, mais que os R$ 30,00 sem a oferta | R$ 25,00 | `a16de14` |
+| DEF-02 | Nas ofertas por grupo, a fração de produtos vendidos por peso saía de graça | Média: desconto maior que o anunciado | 3,5 kg de maçã a R$ 2,00/kg em "3 por 2" | R$ 4,00 | R$ 5,00 | `d06abcc` |
+| DEF-03 | `Teller.product_with_name()` usava o atributo `products`, que não faz parte do contrato de `SupermarketCatalog` | Baixa: latente, porque o catálogo dos testes tinha o atributo | Catálogo que implementa só o contrato | `AttributeError` | Funciona | `11c4b76` |
+
+Com o Template Method, o DEF-01 e o DEF-02 foram corrigidos em um único método, o `GroupPriceOffer.apply()`. No legado, o DEF-02 estava repetido em três blocos de código.
+
+As correções mudaram de propósito **7 casos de teste** (3 do DEF-01 e 4 do DEF-02) e acrescentaram 1 teste para o DEF-03. Todos os outros testes continuaram com os mesmos valores esperados. Os casos alterados estão nas [evidências de testes](docs/evidencias_testes.md#6-casos-alterados-de-propósito), e a causa, o impacto e a correção de cada defeito, no [registro de defeitos](docs/registro_de_defeitos.md).
 
 ---
 
