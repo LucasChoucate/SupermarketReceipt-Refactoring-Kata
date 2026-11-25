@@ -554,7 +554,7 @@ Os cenários de combo (1 a 14) entraram na Fase 5, junto com o código. Esta fas
 
 > **Edital:** entregável 5.9 | **Barema:** 0,5 (Evidências) + 0,5 (README) | **Branch:** `docs/readme`
 
-A fase só altera documentação e o `.gitignore`. O `src/` e o `tests/` não mudam, e a suíte continua com 118 testes passando em todos os commits.
+A fase altera documentação e o `.gitignore` e acrescenta um script de exemplo, `python_pytest/exemplo_de_uso.py` (decisão 5). O `src/` e o `tests/` não mudam, e a suíte continua com 118 testes passando em todos os commits.
 
 ### Decisões da fase
 
@@ -564,6 +564,7 @@ A fase só altera documentação e o `.gitignore`. O `src/` e o `tests/` não mu
 | 2 | Ambiente | Não há um ambiente de referência único: o projeto deve rodar em **qualquer sistema operacional** com **Python 3.10 ou superior**, o mínimo exigido pelo `pytest==9.2.0`. O README traz os comandos para Linux, macOS e Windows e lista os ambientes em que a suíte já foi executada, com a evidência de cada um |
 | 3 | Lições aprendidas, elemento da seção 6 do edital que ainda não existe | Seção curta no próprio README |
 | 4 | `python_pytest/README.md`, que repete os comandos de instalação | Manter a descrição original do kata e trocar a seção *Setup* por um link para o README da raiz, para que haja uma única versão dos comandos |
+| 5 | Como executar o exemplo de uso em qualquer sistema operacional | Um script, `python_pytest/exemplo_de_uso.py`, que inclui `src/` e `tests/` no caminho de importação a partir da própria localização. Assim ele roda com um único comando, sem a variável `PYTHONPATH`, cujo separador muda entre Linux (`:`) e Windows (`;`). O pytest não o coleta, porque o nome não segue o padrão `test_*.py` |
 
 ### Commits
 
@@ -580,7 +581,7 @@ git switch -c docs/readme
 | 9.0 | `docs: detalha o passo a passo da Fase 9 no plano de execução` | Esta seção |
 | 9.1 | `chore: ignora os arquivos de cobertura` | `.coverage` e `htmlcov/` no `python_pytest/.gitignore`. Sem isso, quem segue o README e roda a cobertura fica com um `.coverage` não rastreado |
 | 9.2 | `docs: reescreve o README da raiz com objetivo, ambiente e instalação` | Seções 1 a 4 do roteiro abaixo |
-| 9.3 | `docs: inclui no README os testes, a cobertura e um exemplo de uso` | Seções 5 e 6 |
+| 9.3 | `docs: inclui no README os testes, a cobertura e um exemplo de uso` | Seções 5 e 6, e o script `python_pytest/exemplo_de_uso.py` (decisão 5) |
 | 9.4 | `docs: inclui no README a análise de segurança` | Seção 7 |
 | 9.5 | `docs: inclui no README a estrutura de pastas e os documentos` | Seção 8 |
 | 9.6 | `docs: inclui no README as decisões, os padrões e os defeitos corrigidos` | Seções 9 a 11 |
@@ -599,9 +600,9 @@ Depois do 9.11: push, PR para a `develop` e revisão por outro integrante, de pr
 3. **Créditos:** kata original de Emily Bache, licença MIT ([`license.txt`](../license.txt)). O README original sai, então a atribuição precisa ficar.
 4. **Ambiente e instalação:** Python 3.10 ou superior em qualquer sistema operacional (decisão 2), com a tabela dos ambientes já verificados; `git clone`; `venv`; atualização do `pip` (alertas A-02 e A-03); `pip install -r requirements.txt`; conferência com `pytest -q`. Um bloco para Linux e macOS e outro para Windows, sem depender da ativação do ambiente virtual.
 5. **Testes e cobertura:** `pytest -v`; `coverage run --branch --source=src -m pytest` e `coverage report -m`; o resultado esperado (118 aprovados e 99% de cobertura de ramos); uma tabela com os 6 arquivos de teste e o que cada um cobre.
-6. **Exemplo de uso:** o código não tem ponto de entrada além dos testes, então um script curto mostra o sistema rodando fora do pytest: escova e creme dental em combo e maçã com 20%, total `34.90`. O script usa o `FakeCatalog` e o `ReceiptPrinter` de `tests/`, porque o `SupermarketCatalog` é um stub de banco, e roda a partir de `python_pytest/` com `PYTHONPATH=src:tests`.
+6. **Exemplo de uso:** o código não tem ponto de entrada além dos testes, então o `exemplo_de_uso.py` mostra o sistema rodando fora do pytest: escova e creme dental em combo e maçã com 20%, total `34.90`. O script usa o `FakeCatalog` e o `ReceiptPrinter` de `tests/`, porque o `SupermarketCatalog` é um stub de banco, e roda com `.venv/bin/python exemplo_de_uso.py` ou `.venv\Scripts\python.exe exemplo_de_uso.py` (decisão 5).
 7. **Análise de segurança:** ambiente separado em `../.venv-audit` e o motivo (o caso do `filelock`); os comandos das três ferramentas; o Safety exige conta, e a primeira execução é interativa; resumo de antes e depois, com link para [`seguranca_antes_depois.md`](seguranca_antes_depois.md); as ressalvas do edital. **Os comandos do README mostram o resultado no terminal e não escrevem em `docs/evidencias/seguranca/`**, para que ninguém sobrescreva a evidência oficial ao seguir o README.
-8. **Estrutura de pastas:** a árvore do repositório e uma tabela de documento → entregável do edital: diagnóstico (5.1), requisitos (5.2), plano de contingência (5.3), padrões de projeto (5.5), segurança (5.8) e evidências de testes (5.9), além do registro de defeitos e deste plano.
+8. **Estrutura de pastas:** a árvore do repositório (incluindo o `exemplo_de_uso.py`) e uma tabela de documento → entregável do edital: diagnóstico (5.1), requisitos (5.2), plano de contingência (5.3), padrões de projeto (5.5), segurança (5.8) e evidências de testes (5.9), além do registro de defeitos e deste plano.
 9. **Arquitetura e padrões:** Strategy, Template Method, Simple Factory e a fachada `handle_offers`, com o diagrama Mermaid "depois" de [`padroes_projeto.md`](padroes_projeto.md).
 10. **Regra dos combos e decisões D1 a D7:** a fórmula, a tabela "Quem vence" e uma linha por decisão, com link para a [seção 8 do plano de contingência](plano_contingencia.md#8-decisões-registradas).
 11. **Defeitos corrigidos:** tabela de DEF-01 a DEF-03 (cenário, valor no legado, valor corrigido e commit), com link para o [registro de defeitos](registro_de_defeitos.md).

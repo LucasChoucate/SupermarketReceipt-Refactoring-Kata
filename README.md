@@ -8,7 +8,9 @@ Trabalho prático da disciplina **Alta Qualidade de Software**, ministrada pelo 
 2. [Integrantes](#2-integrantes)
 3. [Requisitos de ambiente](#3-requisitos-de-ambiente)
 4. [Instalação](#4-instalação)
-5. [Créditos e licença](#créditos-e-licença)
+5. [Testes e cobertura](#5-testes-e-cobertura)
+6. [Exemplo de uso](#6-exemplo-de-uso)
+7. [Créditos e licença](#créditos-e-licença)
 
 ---
 
@@ -107,6 +109,86 @@ Windows:
 ```
 
 O resultado esperado é `118 passed`.
+
+---
+
+## 5. Testes e cobertura
+
+Os comandos são executados na pasta `python_pytest/`, com o ambiente da [seção 4](#4-instalação) instalado.
+
+Linux e macOS:
+
+```bash
+.venv/bin/python -m pytest -v
+.venv/bin/python -m coverage run --branch --source=src -m pytest -q
+.venv/bin/python -m coverage report -m
+```
+
+Windows:
+
+```powershell
+.venv\Scripts\python.exe -m pytest -v
+.venv\Scripts\python.exe -m coverage run --branch --source=src -m pytest -q
+.venv\Scripts\python.exe -m coverage report -m
+```
+
+O resultado esperado é **118 testes aprovados** e **99% de cobertura** de linhas e ramos em `src/`. As 3 linhas não cobertas ficam em `catalog.py`: são os métodos de `SupermarketCatalog`, que representam o acesso a um banco de dados fora do kata e só lançam uma exceção. Nos testes, eles são substituídos por um catálogo em memória. Para ver a cobertura linha a linha no navegador, gere o relatório em HTML (`.venv/bin/python -m coverage html` ou `.venv\Scripts\python.exe -m coverage html`) e abra o arquivo `htmlcov/index.html`.
+
+| Arquivo em `tests/` | Testes | O que verifica |
+|---|---|---|
+| `test_supermarket.py` | 1 | O teste original do kata |
+| `test_comportamento_legado.py` | 53 | Caracterização do legado: carrinho, cada oferta e seus limites, ofertas combinadas, recibo impresso e contratos das interfaces públicas |
+| `test_recibos_de_referencia.py` | 14 | Texto completo do recibo de 7 carrinhos de referência, sem combos e com um combo de outros produtos cadastrado, que não pode alterar o recibo |
+| `test_defeitos_corrigidos.py` | 8 | Comportamento corrigido dos defeitos DEF-01, DEF-02 e DEF-03 |
+| `test_politicas_de_desconto.py` | 11 | Testes unitários das estratégias de desconto, do Template Method e da fábrica |
+| `test_combos.py` | 31 | Regra dos combos: cenários do enunciado, excedentes, múltiplos combos, convivência com as ofertas e recibo |
+
+Os demais arquivos da pasta dão suporte aos testes: `conftest.py` (produtos e preços usados nos cenários), `fake_catalog.py` (catálogo em memória), `receipt_printer.py` (impressão do recibo) e `auxiliares.py` (montagem de carrinhos).
+
+A evolução da suíte em cada fase do trabalho, com os logs e os relatórios de cobertura, está em [`docs/evidencias_testes.md`](docs/evidencias_testes.md).
+
+---
+
+## 6. Exemplo de uso
+
+O sistema não tem uma interface própria: ele é usado por outro código, como fazem os testes. O script [`exemplo_de_uso.py`](python_pytest/exemplo_de_uso.py) mostra esse uso fora do pytest. Ele cadastra três produtos, uma oferta de 20% na maçã e um combo de escova com creme dental, monta um carrinho e imprime o recibo.
+
+Na pasta `python_pytest/`:
+
+Linux e macOS:
+
+```bash
+.venv/bin/python exemplo_de_uso.py
+```
+
+Windows:
+
+```powershell
+.venv\Scripts\python.exe exemplo_de_uso.py
+```
+
+Saída esperada:
+
+```text
+escova                             20.00
+  10.00 * 2
+creme dental                       15.00
+maca                                3.00
+  2.00 * 1.500
+20.0% off (maca)                   -0.60
+combo 10% off (escova)             -1.00
+combo 10% off (creme dental)       -1.50
+
+Total:                             34.90
+```
+
+Como o recibo é calculado:
+
+- **Combo:** o carrinho tem 2 escovas e 1 creme dental, o que forma 1 combo completo. O desconto é de 10% sobre R$ 25,00 (R$ 10,00 + R$ 15,00), dividido em uma linha por produto: −1,00 na escova e −1,50 no creme dental. A segunda escova não completa outro combo e é cobrada a preço cheio.
+- **Oferta individual:** 1,5 kg de maçã a R$ 2,00/kg com 20% de desconto: −0,60.
+- **Total:** 20,00 + 15,00 + 3,00 − 0,60 − 2,50 = 34,90.
+
+O exemplo usa o catálogo em memória e a impressora de recibos de `tests/`, porque o catálogo real acessa um banco de dados que não faz parte do kata. O próprio script inclui `src/` e `tests/` no caminho de importação, então funciona da mesma forma em qualquer sistema operacional.
 
 ---
 
