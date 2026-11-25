@@ -11,7 +11,8 @@ Trabalho prático da disciplina **Alta Qualidade de Software**, ministrada pelo 
 5. [Testes e cobertura](#5-testes-e-cobertura)
 6. [Exemplo de uso](#6-exemplo-de-uso)
 7. [Análise de segurança](#7-análise-de-segurança)
-8. [Créditos e licença](#créditos-e-licença)
+8. [Estrutura de pastas e documentos](#8-estrutura-de-pastas-e-documentos)
+9. [Créditos e licença](#créditos-e-licença)
 
 ---
 
@@ -279,6 +280,63 @@ Ressalvas:
 - **A ausência de alertas não prova que o sistema é seguro.** O Bandit procura padrões conhecidos de código inseguro e não detecta erros de lógica de negócio, como os defeitos DEF-01 e DEF-02. O pip-audit e o Safety só conhecem as vulnerabilidades já publicadas nas suas bases.
 - **Nenhuma dependência foi adicionada para gerar resultados nas ferramentas.**
 - **Risco remanescente:** os valores monetários continuam em `float`, mantido para não alterar os valores observados (RNF09). Os riscos e as limitações estão na [seção 10 do documento de segurança](docs/seguranca_antes_depois.md#10-riscos-remanescentes-e-limitações).
+
+---
+
+## 8. Estrutura de pastas e documentos
+
+```text
+.
+├── README.md                        este documento
+├── license.txt                      licença MIT do kata original
+├── apresentacao/                    slides da apresentação
+├── docs/
+│   ├── diagnostico_tecnico.md       code smells, SOLID e defeitos do legado
+│   ├── registro_de_defeitos.md      DEF-01 a DEF-03: causa, impacto e correção
+│   ├── requisitos.md                RF, RNF, critérios de aceitação e rastreabilidade
+│   ├── plano_contingencia.md        riscos, invariantes, interfaces e reversão
+│   ├── plano_de_execucao.md         fases do trabalho, passo a passo
+│   ├── padroes_projeto.md           padrões, diagramas antes e depois e SOLID
+│   ├── seguranca_antes_depois.md    Bandit, pip-audit e Safety: triagem e comparação
+│   ├── evidencias_testes.md         evolução da suíte e comparação antes e depois
+│   └── evidencias/
+│       ├── pytest_antes_ubuntu.log  os 57 testes de caracterização iniciais
+│       ├── testes/                  logs do pytest e cobertura de cada fase
+│       └── seguranca/
+│           ├── antes/               relatórios na tag legado-baseline
+│           └── depois/              relatórios após a modernização
+└── python_pytest/                   estrutura original do kata, preservada
+    ├── README.md                    descrição original da versão Python do kata
+    ├── requirements.txt             pytest e coverage, com versões fixadas
+    ├── pytest.ini                   inclui src/ e tests/ no caminho de importação
+    ├── exemplo_de_uso.py            recibo de exemplo, fora do pytest (seção 6)
+    ├── src/                         código de produção
+    │   ├── catalog.py               contrato do catálogo de produtos
+    │   ├── discount_engine.py       aplica ofertas e combos na ordem de menor total
+    │   ├── discount_policies.py     estratégias de desconto, combos e fábrica
+    │   ├── model_objects.py         produtos, ofertas e descontos
+    │   ├── receipt.py               recibo: itens, descontos e total
+    │   ├── shopping_cart.py         carrinho de compras
+    │   └── teller.py                caixa: ofertas, combos e checkout
+    └── tests/                       118 testes e arquivos de apoio (seção 5)
+```
+
+A estrutura sugerida na seção 7 do edital é ilustrativa. A pasta original do kata (`python_pytest/`) foi preservada, para manter a compatibilidade com a execução e os testes, e os arquivos de teste sugeridos (`test_comportamento_legado.py` e `test_combos.py`) existem com esses nomes. Os documentos estão em Markdown, que o GitHub exibe formatado e cujas mudanças ficam visíveis no histórico.
+
+Onde está cada entregável do edital:
+
+| Entregável | Onde está |
+|---|---|
+| 5.1 Relatório de diagnóstico técnico | [`docs/diagnostico_tecnico.md`](docs/diagnostico_tecnico.md). Os defeitos encontrados estão detalhados em [`docs/registro_de_defeitos.md`](docs/registro_de_defeitos.md) |
+| 5.2 Documento de requisitos | [`docs/requisitos.md`](docs/requisitos.md) |
+| 5.3 Plano de contingência e refatoração | [`docs/plano_contingencia.md`](docs/plano_contingencia.md). A execução, fase a fase, está em [`docs/plano_de_execucao.md`](docs/plano_de_execucao.md) |
+| 5.4 Código refatorado | [`python_pytest/src/`](python_pytest/src/) |
+| 5.5 Padrões de projeto | [`docs/padroes_projeto.md`](docs/padroes_projeto.md) |
+| 5.6 Promoção de combos | `BundleOffer` em [`discount_policies.py`](python_pytest/src/discount_policies.py), `Teller.add_bundle_offer` em [`teller.py`](python_pytest/src/teller.py) e a convivência com as ofertas em [`discount_engine.py`](python_pytest/src/discount_engine.py). Testes em [`test_combos.py`](python_pytest/tests/test_combos.py) |
+| 5.7 Testes automatizados | [`python_pytest/tests/`](python_pytest/tests/), descritos na [seção 5](#5-testes-e-cobertura) |
+| 5.8 Análise de segurança | [`docs/seguranca_antes_depois.md`](docs/seguranca_antes_depois.md) e [`docs/evidencias/seguranca/`](docs/evidencias/seguranca/) |
+| 5.9 Evidências, README e organização | Este README, [`docs/evidencias_testes.md`](docs/evidencias_testes.md) e [`docs/evidencias/`](docs/evidencias/) |
+| 5.10 Apresentação | [`apresentacao/`](apresentacao/) |
 
 ---
 

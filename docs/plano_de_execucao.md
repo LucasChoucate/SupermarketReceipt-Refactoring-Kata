@@ -606,7 +606,7 @@ Depois do 9.11: push, PR para a `develop` e revisão por outro integrante, de pr
 9. **Arquitetura e padrões:** Strategy, Template Method, Simple Factory e a fachada `handle_offers`, com o diagrama Mermaid "depois" de [`padroes_projeto.md`](padroes_projeto.md).
 10. **Regra dos combos e decisões D1 a D7:** a fórmula, a tabela "Quem vence" e uma linha por decisão, com link para a [seção 8 do plano de contingência](plano_contingencia.md#8-decisões-registradas).
 11. **Defeitos corrigidos:** tabela de DEF-01 a DEF-03 (cenário, valor no legado, valor corrigido e commit), com link para o [registro de defeitos](registro_de_defeitos.md).
-12. **Lições aprendidas e limitações:** separar refatoração de correção (D3); isolar as ferramentas de auditoria (`filelock`); remover a dependência sem uso (D7: de 22 para 6 pacotes auditados); o `float` como risco remanescente; a escolha da ordem feita para o carrinho inteiro; o Safety dependente de conta; as evidências geradas em ambientes diferentes.
+12. **Lições aprendidas e limitações:** separar refatoração de correção (D3); isolar as ferramentas de auditoria (`filelock`); remover a dependência sem uso (D7: de 22 para 6 pacotes auditados); o `float` como risco remanescente; a escolha da ordem feita para o carrinho inteiro; o Safety dependente de conta; as evidências geradas em ambientes diferentes. No mesmo commit, acrescentar à seção 8 do README uma frase que relacione os documentos aos elementos da documentação inspirada no MPS.BR (seção 6 do edital), apontando as lições aprendidas para a nova seção.
 
 ### 9.9: testar o README do zero
 
