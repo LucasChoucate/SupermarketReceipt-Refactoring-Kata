@@ -10,7 +10,8 @@ Trabalho prático da disciplina **Alta Qualidade de Software**, ministrada pelo 
 4. [Instalação](#4-instalação)
 5. [Testes e cobertura](#5-testes-e-cobertura)
 6. [Exemplo de uso](#6-exemplo-de-uso)
-7. [Créditos e licença](#créditos-e-licença)
+7. [Análise de segurança](#7-análise-de-segurança)
+8. [Créditos e licença](#créditos-e-licença)
 
 ---
 
@@ -189,6 +190,95 @@ Como o recibo é calculado:
 - **Total:** 20,00 + 15,00 + 3,00 − 0,60 − 2,50 = 34,90.
 
 O exemplo usa o catálogo em memória e a impressora de recibos de `tests/`, porque o catálogo real acessa um banco de dados que não faz parte do kata. O próprio script inclui `src/` e `tests/` no caminho de importação, então funciona da mesma forma em qualquer sistema operacional.
+
+---
+
+## 7. Análise de segurança
+
+O código e as dependências foram analisados com três ferramentas, antes da modernização (tag `legado-baseline`) e depois dela:
+
+| Ferramenta | O que analisa |
+|---|---|
+| **Bandit** | O código-fonte de `python_pytest/src/`, em busca de padrões de implementação inseguros |
+| **pip-audit** | As dependências do `requirements.txt`, comparadas com a base pública de vulnerabilidades do PyPI e do OSV |
+| **Safety** | As dependências do `requirements.txt` e o ambiente virtual do projeto, comparados com a base da Safety |
+
+A análise completa, com a triagem de cada alerta, está em [`docs/seguranca_antes_depois.md`](docs/seguranca_antes_depois.md). Esta seção mostra como reproduzi-la e resume os resultados.
+
+### 7.1 Ambiente separado para as ferramentas
+
+As ferramentas ficam em um ambiente virtual próprio, **fora do repositório** (`../.venv-audit`), e não no `.venv` do projeto. Na primeira auditoria do grupo, elas foram instaladas no ambiente do projeto, e o `filelock`, que é dependência do próprio Safety, apareceu com 13 vulnerabilidades como se fosse do sistema auditado (alerta A-04). Com o ambiente separado, as ferramentas não contaminam o resultado e nenhuma dependência entra no projeto só por causa da auditoria.
+
+Os comandos desta seção são executados na **raiz do repositório**, e não em `python_pytest/`. As versões são as mesmas da análise registrada.
+
+Linux e macOS:
+
+```bash
+python3 -m venv ../.venv-audit
+../.venv-audit/bin/python -m pip install bandit==1.9.4 pip-audit==2.10.1 safety==3.8.1
+```
+
+Windows:
+
+```powershell
+python -m venv ..\.venv-audit
+..\.venv-audit\Scripts\python.exe -m pip install bandit==1.9.4 pip-audit==2.10.1 safety==3.8.1
+```
+
+### 7.2 Execução
+
+Rode depois da instalação da [seção 4](#4-instalação), porque o Safety também analisa o ambiente `python_pytest/.venv`.
+
+Linux e macOS:
+
+```bash
+../.venv-audit/bin/bandit -r python_pytest/src
+../.venv-audit/bin/pip-audit -r python_pytest/requirements.txt
+../.venv-audit/bin/safety auth login
+../.venv-audit/bin/safety scan --target python_pytest
+```
+
+Windows:
+
+```powershell
+..\.venv-audit\Scripts\bandit.exe -r python_pytest/src
+..\.venv-audit\Scripts\pip-audit.exe -r python_pytest/requirements.txt
+..\.venv-audit\Scripts\safety.exe auth login
+..\.venv-audit\Scripts\safety.exe scan --target python_pytest
+```
+
+Resultado esperado: o Bandit informa `No issues identified`, o pip-audit informa `No known vulnerabilities found` e o Safety não aponta nenhuma vulnerabilidade.
+
+Observações:
+
+- **Escopo do Bandit.** Só o código de produção (`src/`) é analisado. Em `tests/`, o Bandit aponta 86 usos de `assert` (B101), que são esperados, porque o `assert` é o mecanismo de verificação do pytest (alerta A-05).
+- **pip-audit e internet.** O pip-audit instala as dependências do `requirements.txt` em um ambiente temporário para auditá-las, por isso precisa de acesso à internet.
+- **O Safety exige conta.** Sem login, o `safety scan` só pergunta se você quer criar uma conta ou entrar em uma existente. O `safety auth login` abre o navegador para criar uma conta gratuita na Safety Platform ou entrar nela. Em terminais sem navegador, como o WSL ou uma sessão SSH, use `safety auth login --headless` e abra o endereço exibido em outro navegador. Na primeira execução, o `safety scan` pergunta se o projeto deve ser vinculado à conta e grava a resposta em `python_pytest/.safety-project.ini`, que o Git ignora. Ao iniciar, o Safety 3.8.1 exibe avisos de depreciação (`AuthlibDeprecationWarning`), que não afetam o resultado.
+- **A política do Safety fica na conta.** As regras que ignoram certas ocorrências vêm da configuração da conta, e não de um arquivo do repositório. Outra conta pode ter outra política e, portanto, outro resultado.
+- **Os resultados mudam com o tempo.** As bases de vulnerabilidades são atualizadas continuamente, então uma execução futura pode apontar vulnerabilidades novas nas mesmas versões.
+- **Evidências oficiais.** Os comandos acima mostram o resultado no terminal. Os relatórios registrados ficam em [`docs/evidencias/seguranca/`](docs/evidencias/seguranca/) e foram gerados com os comandos da [seção 2.3 do documento de segurança](docs/seguranca_antes_depois.md#23-comandos-executados). Não grave a saída nessas pastas, para não sobrescrever as evidências.
+
+### 7.3 Resultados antes e depois
+
+| Ferramenta | Antes (`legado-baseline`) | Depois |
+|---|---|---|
+| Bandit | 0 ocorrências em 5 arquivos e 133 linhas | 0 ocorrências em 7 arquivos e 349 linhas |
+| pip-audit | 0 vulnerabilidades em 22 pacotes | 0 vulnerabilidades em 6 pacotes |
+| Safety | 3 ocorrências, ignoradas pela política da conta: `pytest` sem versão fixada (A-01) e duas no `pip` 26.1.2 do ambiente (A-02 e A-03) | 0 ocorrências |
+
+| Ação | Efeito |
+|---|---|
+| Fixar as versões no `requirements.txt` (`pytest==9.2.0` e `coverage==7.6.12`) | Resolveu o A-01 e tornou a instalação reproduzível |
+| Remover o `approvaltests` e o `pytest-approvaltests`, que nenhum teste usava (decisão D7) | Os pacotes auditados caíram de 22 para 6 |
+| Atualizar o `pip` do ambiente do projeto (passo da [seção 4.2](#42-criar-o-ambiente-virtual-e-instalar-as-dependências)) | Resolveu o A-02 e o A-03 |
+| Isolar as ferramentas em `../.venv-audit` | Eliminou o falso positivo do `filelock` (A-04) |
+
+Ressalvas:
+
+- **Um alerta não é, por si só, uma vulnerabilidade explorável.** Cada ocorrência foi investigada quanto à origem, à versão e ao contexto. Nenhuma afetava o código de produção: todas estavam em ferramentas de desenvolvimento ou no ambiente.
+- **A ausência de alertas não prova que o sistema é seguro.** O Bandit procura padrões conhecidos de código inseguro e não detecta erros de lógica de negócio, como os defeitos DEF-01 e DEF-02. O pip-audit e o Safety só conhecem as vulnerabilidades já publicadas nas suas bases.
+- **Nenhuma dependência foi adicionada para gerar resultados nas ferramentas.**
+- **Risco remanescente:** os valores monetários continuam em `float`, mantido para não alterar os valores observados (RNF09). Os riscos e as limitações estão na [seção 10 do documento de segurança](docs/seguranca_antes_depois.md#10-riscos-remanescentes-e-limitações).
 
 ---
 
