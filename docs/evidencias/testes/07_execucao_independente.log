@@ -1,0 +1,657 @@
+# Execução independente do README (Fase 9, passo 9.9)
+
+Data: 25/11/2026 19:09 -03
+Commit testado: 0c1edd3 docs: aponta o README do python_pytest para o README da raiz (branch docs/readme)
+Sistema: Ubuntu 24.04.5 LTS, kernel 7.0.0-43-generic
+Pasta: clone novo do repositório local, sem nenhum arquivo além dos commitados.
+       A seção 4.1 (git clone do GitHub) foi substituída por esse clone, porque a
+       branch ainda não estava publicada.
+Comandos: extraídos dos blocos 'bash' (Linux e macOS) do README do próprio clone,
+          sem edição, exceto o interpretador da criação do venv na parte 2.
+
+Comandos das seções 4 a 6 (pasta python_pytest/):
+    python3 -m venv .venv
+    .venv/bin/python -m pip install --upgrade pip
+    .venv/bin/python -m pip install -r requirements.txt
+    .venv/bin/python -m pytest -q
+    .venv/bin/python -m pytest -v
+    .venv/bin/python -m coverage run --branch --source=src -m pytest -q
+    .venv/bin/python -m coverage report -m
+    .venv/bin/python exemplo_de_uso.py
+Comandos da seção 7 (raiz do repositório):
+    python3 -m venv ../.venv-audit
+    ../.venv-audit/bin/python -m pip install bandit==1.9.4 pip-audit==2.10.1 safety==3.8.1
+    ../.venv-audit/bin/bandit -r python_pytest/src
+    ../.venv-audit/bin/pip-audit -r python_pytest/requirements.txt
+    ../.venv-audit/bin/safety auth login
+    ../.venv-audit/bin/safety scan --target python_pytest
+
+======================================================================
+Parte 1: seções 4 a 6 com o python3 do sistema (Python 3.14.6)
+======================================================================
+
+$ python3 -m venv .venv
+
+$ .venv/bin/python -m pip install --upgrade pip
+Requirement already satisfied: pip in ./.venv/lib/python3.14/site-packages (26.1.2)
+Collecting pip
+  Using cached pip-26.3-py3-none-any.whl.metadata (4.6 kB)
+Using cached pip-26.3-py3-none-any.whl (2.0 MB)
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 26.1.2
+    Uninstalling pip-26.1.2:
+      Successfully uninstalled pip-26.1.2
+Successfully installed pip-26.3
+
+$ .venv/bin/python -m pip install -r requirements.txt
+Collecting pytest==9.2.0 (from -r requirements.txt (line 1))
+  Using cached pytest-9.2.0-py3-none-any.whl.metadata (7.9 kB)
+Collecting coverage==7.6.12 (from -r requirements.txt (line 2))
+  Using cached coverage-7.6.12-py3-none-any.whl.metadata (8.5 kB)
+Collecting iniconfig>=2 (from pytest==9.2.0->-r requirements.txt (line 1))
+  Using cached iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+Collecting packaging>=24 (from pytest==9.2.0->-r requirements.txt (line 1))
+  Using cached packaging-26.4-py3-none-any.whl.metadata (3.5 kB)
+Collecting pluggy<2,>=1.6 (from pytest==9.2.0->-r requirements.txt (line 1))
+  Using cached pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+Collecting pygments>=2.15 (from pytest==9.2.0->-r requirements.txt (line 1))
+  Using cached pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+Using cached pytest-9.2.0-py3-none-any.whl (411 kB)
+Using cached coverage-7.6.12-py3-none-any.whl (200 kB)
+Using cached pluggy-1.7.0-py3-none-any.whl (27 kB)
+Using cached iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+Using cached packaging-26.4-py3-none-any.whl (140 kB)
+Using cached pygments-2.21.0-py3-none-any.whl (1.3 MB)
+Installing collected packages: pygments, pluggy, packaging, iniconfig, coverage, pytest
+
+Successfully installed coverage-7.6.12 iniconfig-2.3.1 packaging-26.4 pluggy-1.7.0 pygments-2.21.0 pytest-9.2.0
+
+$ .venv/bin/python -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.10s
+
+$ .venv/bin/python -m pytest -v
+============================= test session starts ==============================
+platform linux -- Python 3.14.6, pytest-9.2.0, pluggy-1.7.0 -- /home/ramon/dev/faculdade/qualidade_software/kata-limpo/python_pytest/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/ramon/dev/faculdade/qualidade_software/kata-limpo/python_pytest
+configfile: pytest.ini
+testpaths: tests
+collecting ... collected 118 items
+
+tests/test_combos.py::test_combo_desconta_10_por_cento_so_dos_combos_completos[combo_completo] PASSED [  0%]
+tests/test_combos.py::test_combo_desconta_10_por_cento_so_dos_combos_completos[escova_excedente] PASSED [  1%]
+tests/test_combos.py::test_combo_desconta_10_por_cento_so_dos_combos_completos[dois_combos] PASSED [  2%]
+tests/test_combos.py::test_combo_desconta_10_por_cento_so_dos_combos_completos[combo_incompleto] PASSED [  3%]
+tests/test_combos.py::test_combo_com_mais_de_uma_unidade_do_mesmo_produto PASSED [  4%]
+tests/test_combos.py::test_combo_usa_so_a_parte_inteira_de_produto_por_peso PASSED [  5%]
+tests/test_combos.py::test_percentual_do_combo_pode_ser_informado PASSED [  5%]
+tests/test_combos.py::test_cenarios_do_roteiro[1_escova_1_creme] PASSED  [  6%]
+tests/test_combos.py::test_cenarios_do_roteiro[2_escovas_1_creme_excedente_a_preco_cheio] PASSED [  7%]
+tests/test_combos.py::test_cenarios_do_roteiro[2_escovas_2_cremes_dois_combos] PASSED [  8%]
+tests/test_combos.py::test_cenarios_do_roteiro[so_1_escova_combo_incompleto] PASSED [  9%]
+tests/test_combos.py::test_combo_incompleto_nao_gera_linha_de_desconto PASSED [ 10%]
+tests/test_combos.py::test_combo_que_exige_duas_unidades_do_mesmo_produto PASSED [ 11%]
+tests/test_combos.py::test_dois_combos_disputando_o_mesmo_produto_vence_a_ordem_de_cadastro PASSED [ 11%]
+tests/test_combos.py::test_combos_independentes_no_mesmo_carrinho[dois_combos_independentes_completos] PASSED [ 12%]
+tests/test_combos.py::test_combos_independentes_no_mesmo_carrinho[um_completo_e_um_incompleto] PASSED [ 13%]
+tests/test_combos.py::test_recibo_impresso_com_combo PASSED              [ 14%]
+tests/test_combos.py::test_add_bundle_offer_nao_altera_as_ofertas_nem_o_enum PASSED [ 15%]
+tests/test_combos.py::test_add_bundle_offer_exige_pelo_menos_um_produto PASSED [ 16%]
+tests/test_combos.py::test_escolhe_a_ordem_de_menor_total[oferta_vence_3_por_2] PASSED [ 16%]
+tests/test_combos.py::test_escolhe_a_ordem_de_menor_total[combo_vence_percentual_de_20] PASSED [ 17%]
+tests/test_combos.py::test_escolhe_a_ordem_de_menor_total[combo_vence_5_por_valor] PASSED [ 18%]
+tests/test_combos.py::test_escolhe_a_ordem_de_menor_total[empate_mantem_a_oferta] PASSED [ 19%]
+tests/test_combos.py::test_oferta_de_produto_fora_do_combo_nao_e_afetada PASSED [ 20%]
+tests/test_combos.py::test_combo_vencedor_nao_deixa_linha_vazia_da_oferta_substituida PASSED [ 21%]
+tests/test_combos.py::test_combo_usa_as_unidades_que_sobram_da_oferta PASSED [ 22%]
+tests/test_combos.py::test_cadastrar_um_combo_nunca_encarece_o_carrinho[None-None] PASSED [ 22%]
+tests/test_combos.py::test_cadastrar_um_combo_nunca_encarece_o_carrinho[SpecialOfferType.THREE_FOR_TWO-None] PASSED [ 23%]
+tests/test_combos.py::test_cadastrar_um_combo_nunca_encarece_o_carrinho[SpecialOfferType.TEN_PERCENT_DISCOUNT-20.0] PASSED [ 24%]
+tests/test_combos.py::test_cadastrar_um_combo_nunca_encarece_o_carrinho[SpecialOfferType.TWO_FOR_AMOUNT-15.0] PASSED [ 25%]
+tests/test_combos.py::test_cadastrar_um_combo_nunca_encarece_o_carrinho[SpecialOfferType.FIVE_FOR_AMOUNT-40.0] PASSED [ 26%]
+tests/test_comportamento_legado.py::test_produto_sem_oferta_custa_quantidade_vezes_preco[1-10.0] PASSED [ 27%]
+tests/test_comportamento_legado.py::test_produto_sem_oferta_custa_quantidade_vezes_preco[2-20.0] PASSED [ 27%]
+tests/test_comportamento_legado.py::test_produto_sem_oferta_custa_quantidade_vezes_preco[7-70.0] PASSED [ 28%]
+tests/test_comportamento_legado.py::test_produto_por_peso_sem_oferta_cobra_valor_exato_da_fracao PASSED [ 29%]
+tests/test_comportamento_legado.py::test_carrinho_vazio_gera_recibo_zerado PASSED [ 30%]
+tests/test_comportamento_legado.py::test_total_e_soma_dos_itens_de_produtos_diferentes PASSED [ 31%]
+tests/test_comportamento_legado.py::test_preco_unitario_vem_do_catalogo_no_momento_do_checkout PASSED [ 32%]
+tests/test_comportamento_legado.py::test_carrinho_agrega_quantidades_mas_recibo_lista_uma_linha_por_inclusao PASSED [ 33%]
+tests/test_comportamento_legado.py::test_produto_com_quantidade_zero[SpecialOfferType.TEN_PERCENT_DISCOUNT-10.0-descricoes_esperadas0] PASSED [ 33%]
+tests/test_comportamento_legado.py::test_produto_com_quantidade_zero[SpecialOfferType.THREE_FOR_TWO-None-descricoes_esperadas1] PASSED [ 34%]
+tests/test_comportamento_legado.py::test_produto_com_quantidade_zero[SpecialOfferType.TWO_FOR_AMOUNT-15.0-descricoes_esperadas2] PASSED [ 35%]
+tests/test_comportamento_legado.py::test_produto_com_quantidade_zero[SpecialOfferType.FIVE_FOR_AMOUNT-40.0-descricoes_esperadas3] PASSED [ 36%]
+tests/test_comportamento_legado.py::test_oferta_so_vale_para_o_produto_cadastrado PASSED [ 37%]
+tests/test_comportamento_legado.py::test_oferta_de_produto_ausente_do_carrinho_nao_gera_desconto PASSED [ 38%]
+tests/test_comportamento_legado.py::test_novo_cadastro_para_o_mesmo_produto_substitui_a_oferta_anterior PASSED [ 38%]
+tests/test_comportamento_legado.py::test_oferta_cinco_por_valor_gera_um_desconto_no_checkout PASSED [ 39%]
+tests/test_comportamento_legado.py::test_quantidades_de_inclusoes_separadas_somam_para_a_oferta PASSED [ 40%]
+tests/test_comportamento_legado.py::test_tres_por_dois[1-0.0] PASSED     [ 41%]
+tests/test_comportamento_legado.py::test_tres_por_dois[2-0.0] PASSED     [ 42%]
+tests/test_comportamento_legado.py::test_tres_por_dois[3--10.0] PASSED   [ 43%]
+tests/test_comportamento_legado.py::test_tres_por_dois[4--10.0] PASSED   [ 44%]
+tests/test_comportamento_legado.py::test_tres_por_dois[5--10.0] PASSED   [ 44%]
+tests/test_comportamento_legado.py::test_tres_por_dois[6--20.0] PASSED   [ 45%]
+tests/test_comportamento_legado.py::test_tres_por_dois[7--20.0] PASSED   [ 46%]
+tests/test_comportamento_legado.py::test_desconto_percentual_incide_sobre_toda_a_quantidade[10.0-10.0% off--3.0] PASSED [ 47%]
+tests/test_comportamento_legado.py::test_desconto_percentual_incide_sobre_toda_a_quantidade[20-20% off--6.0] PASSED [ 48%]
+tests/test_comportamento_legado.py::test_desconto_percentual_incide_sobre_toda_a_quantidade[0-0% off-0.0] PASSED [ 49%]
+tests/test_comportamento_legado.py::test_desconto_percentual_nao_exige_quantidade_minima PASSED [ 50%]
+tests/test_comportamento_legado.py::test_desconto_percentual_usa_a_fracao_exata_em_produto_por_peso PASSED [ 50%]
+tests/test_comportamento_legado.py::test_dois_por_valor_com_uma_unidade_nao_gera_desconto PASSED [ 51%]
+tests/test_comportamento_legado.py::test_dois_por_valor_com_quantidade_par[2--5.0-15.0] PASSED [ 52%]
+tests/test_comportamento_legado.py::test_dois_por_valor_com_quantidade_par[4--10.0-30.0] PASSED [ 53%]
+tests/test_comportamento_legado.py::test_dois_por_valor_com_quantidade_par[6--15.0-45.0] PASSED [ 54%]
+tests/test_comportamento_legado.py::test_cinco_por_valor[4-0.0-40.0] PASSED [ 55%]
+tests/test_comportamento_legado.py::test_cinco_por_valor[5--10.0-40.0] PASSED [ 55%]
+tests/test_comportamento_legado.py::test_cinco_por_valor[6--10.0-50.0] PASSED [ 56%]
+tests/test_comportamento_legado.py::test_cinco_por_valor[9--10.0-80.0] PASSED [ 57%]
+tests/test_comportamento_legado.py::test_cinco_por_valor[10--20.0-80.0] PASSED [ 58%]
+tests/test_comportamento_legado.py::test_cinco_por_valor[11--20.0-90.0] PASSED [ 59%]
+tests/test_comportamento_legado.py::test_ofertas_de_produtos_diferentes_coexistem_na_mesma_compra PASSED [ 60%]
+tests/test_comportamento_legado.py::test_descontos_seguem_a_ordem_da_primeira_inclusao_do_produto PASSED [ 61%]
+tests/test_comportamento_legado.py::test_total_do_recibo_e_soma_dos_itens_mais_descontos_negativos PASSED [ 61%]
+tests/test_comportamento_legado.py::test_mesmo_carrinho_e_mesmas_ofertas_geram_o_mesmo_recibo PASSED [ 62%]
+tests/test_comportamento_legado.py::test_alterar_o_carrinho_depois_de_um_checkout_recalcula_as_ofertas PASSED [ 63%]
+tests/test_comportamento_legado.py::test_recibo_impresso_com_todas_as_modalidades_de_oferta PASSED [ 64%]
+tests/test_comportamento_legado.py::test_recibo_impresso_de_carrinho_vazio PASSED [ 65%]
+tests/test_comportamento_legado.py::test_recibo_impresso_so_detalha_quantidade_diferente_de_um PASSED [ 66%]
+tests/test_comportamento_legado.py::test_tipos_de_oferta_existentes_e_seus_valores PASSED [ 66%]
+tests/test_comportamento_legado.py::test_add_special_offer_guarda_um_offer_com_tipo_produto_e_argumento PASSED [ 67%]
+tests/test_comportamento_legado.py::test_product_with_name_devolve_o_produto_ou_none PASSED [ 68%]
+tests/test_comportamento_legado.py::test_handle_offers_continua_aceitando_receipt_ofertas_e_catalogo PASSED [ 69%]
+tests/test_comportamento_legado.py::test_receipt_soma_itens_e_descontos_e_devolve_copias_das_listas PASSED [ 70%]
+tests/test_comportamento_legado.py::test_carrinho_expoe_itens_como_product_quantity PASSED [ 71%]
+tests/test_defeitos_corrigidos.py::test_dois_por_valor_com_quantidade_impar_cobra_sobra_a_preco_cheio[3--5.0-25.0] PASSED [ 72%]
+tests/test_defeitos_corrigidos.py::test_dois_por_valor_com_quantidade_impar_cobra_sobra_a_preco_cheio[5--10.0-40.0] PASSED [ 72%]
+tests/test_defeitos_corrigidos.py::test_dois_por_valor_com_quantidade_impar_cobra_sobra_a_preco_cheio[7--15.0-55.0] PASSED [ 73%]
+tests/test_defeitos_corrigidos.py::test_promocao_por_grupo_cobra_a_fracao_restante[SpecialOfferType.THREE_FOR_TWO-None-2.9-0.0-5.8] PASSED [ 74%]
+tests/test_defeitos_corrigidos.py::test_promocao_por_grupo_cobra_a_fracao_restante[SpecialOfferType.THREE_FOR_TWO-None-3.5--2.0-5.0] PASSED [ 75%]
+tests/test_defeitos_corrigidos.py::test_promocao_por_grupo_cobra_a_fracao_restante[SpecialOfferType.TWO_FOR_AMOUNT-3.0-2.5--1.0-4.0] PASSED [ 76%]
+tests/test_defeitos_corrigidos.py::test_promocao_por_grupo_cobra_a_fracao_restante[SpecialOfferType.FIVE_FOR_AMOUNT-8.0-5.5--2.0-9.0] PASSED [ 77%]
+tests/test_defeitos_corrigidos.py::test_product_with_name_funciona_com_qualquer_catalogo_do_contrato PASSED [ 77%]
+tests/test_politicas_de_desconto.py::test_fabrica_cria_a_politica_de_cada_tipo_de_oferta[SpecialOfferType.THREE_FOR_TWO-None-ThreeForTwo] PASSED [ 78%]
+tests/test_politicas_de_desconto.py::test_fabrica_cria_a_politica_de_cada_tipo_de_oferta[SpecialOfferType.TEN_PERCENT_DISCOUNT-10.0-PercentageOffer] PASSED [ 79%]
+tests/test_politicas_de_desconto.py::test_fabrica_cria_a_politica_de_cada_tipo_de_oferta[SpecialOfferType.TWO_FOR_AMOUNT-15.0-TwoForAmount] PASSED [ 80%]
+tests/test_politicas_de_desconto.py::test_fabrica_cria_a_politica_de_cada_tipo_de_oferta[SpecialOfferType.FIVE_FOR_AMOUNT-40.0-FiveForAmount] PASSED [ 81%]
+tests/test_politicas_de_desconto.py::test_fabrica_atende_todos_os_tipos_de_oferta PASSED [ 82%]
+tests/test_politicas_de_desconto.py::test_desconto_percentual_consome_todas_as_unidades PASSED [ 83%]
+tests/test_politicas_de_desconto.py::test_oferta_por_grupo_consome_so_os_grupos_completos[tres_por_dois] PASSED [ 83%]
+tests/test_politicas_de_desconto.py::test_oferta_por_grupo_consome_so_os_grupos_completos[dois_por_valor] PASSED [ 84%]
+tests/test_politicas_de_desconto.py::test_oferta_por_grupo_consome_so_os_grupos_completos[cinco_por_valor] PASSED [ 85%]
+tests/test_politicas_de_desconto.py::test_oferta_por_grupo_nao_ativada_nao_gera_desconto_nem_consome PASSED [ 86%]
+tests/test_politicas_de_desconto.py::test_nova_oferta_por_grupo_reaproveita_o_algoritmo_comum PASSED [ 87%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_sem_combos[sem_ofertas] PASSED [ 88%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_sem_combos[tres_por_dois] PASSED [ 88%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_sem_combos[percentual] PASSED [ 89%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_sem_combos[dois_por_valor_com_quantidade_par] PASSED [ 90%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_sem_combos[cinco_por_valor] PASSED [ 91%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_sem_combos[percentual_em_produto_por_peso] PASSED [ 92%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_sem_combos[varias_ofertas] PASSED [ 93%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_com_combo_de_outros_produtos[sem_ofertas] PASSED [ 94%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_com_combo_de_outros_produtos[tres_por_dois] PASSED [ 94%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_com_combo_de_outros_produtos[percentual] PASSED [ 95%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_com_combo_de_outros_produtos[dois_por_valor_com_quantidade_par] PASSED [ 96%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_com_combo_de_outros_produtos[cinco_por_valor] PASSED [ 97%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_com_combo_de_outros_produtos[percentual_em_produto_por_peso] PASSED [ 98%]
+tests/test_recibos_de_referencia.py::test_recibo_de_referencia_com_combo_de_outros_produtos[varias_ofertas] PASSED [ 99%]
+tests/test_supermarket.py::test_ten_percent_discount PASSED              [100%]
+
+============================= 118 passed in 0.07s ==============================
+
+$ .venv/bin/python -m coverage run --branch --source=src -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.24s
+
+$ .venv/bin/python -m coverage report -m
+Name                       Stmts   Miss Branch BrPart  Cover   Missing
+----------------------------------------------------------------------
+src/catalog.py                 7      3      0      0    57%   12, 16, 20
+src/discount_engine.py        29      0     14      0   100%
+src/discount_policies.py      96      0      6      0   100%
+src/model_objects.py          27      0      0      0   100%
+src/receipt.py                27      0      4      0   100%
+src/shopping_cart.py          21      0      2      0   100%
+src/teller.py                 29      0      6      0   100%
+----------------------------------------------------------------------
+TOTAL                        236      3     32      0    99%
+
+$ .venv/bin/python exemplo_de_uso.py
+escova                             20.00
+  10.00 * 2
+creme dental                       15.00
+maca                                3.00
+  2.00 * 1.500
+20.0% off (maca)                   -0.60
+combo 10% off (escova)             -1.00
+combo 10% off (creme dental)       -1.50
+
+Total:                             34.90
+
+
+======================================================================
+Parte 2: as mesmas seções nas versões mínimas e intermediárias do Python
+Só o interpretador do 'python3 -m venv' muda. De cada comando, ficam
+as 3 últimas linhas da saída.
+======================================================================
+
+--- Python 3.10: Python 3.10.21 (/home/ramon/.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/bin/python3.10)
+
+$ /home/ramon/.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/bin/python3.10 -m venv .venv
+
+$ .venv/bin/python -m pip install --upgrade pip
+      Successfully uninstalled pip-23.0.1
+Successfully installed pip-26.3
+WARNING: There was an error checking the latest version of pip.
+
+$ .venv/bin/python -m pip install -r requirements.txt
+Installing collected packages: typing-extensions, tomli, pygments, pluggy, packaging, iniconfig, coverage, exceptiongroup, pytest
+
+Successfully installed coverage-7.6.12 exceptiongroup-1.3.2 iniconfig-2.3.1 packaging-26.4 pluggy-1.7.0 pygments-2.21.0 pytest-9.2.0 tomli-2.5.0 typing-extensions-4.16.0
+
+$ .venv/bin/python -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.13s
+
+$ .venv/bin/python -m pytest -v
+tests/test_supermarket.py::test_ten_percent_discount PASSED              [100%]
+
+============================= 118 passed in 0.08s ==============================
+
+$ .venv/bin/python -m coverage run --branch --source=src -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.13s
+
+$ .venv/bin/python -m coverage report -m
+src/teller.py                 29      0      6      0   100%
+----------------------------------------------------------------------
+TOTAL                        238      3     32      0    99%
+
+$ .venv/bin/python exemplo_de_uso.py
+
+Total:                             34.90
+
+
+--- Python 3.11: Python 3.11.16 (/home/ramon/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/bin/python3.11)
+
+$ /home/ramon/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/bin/python3.11 -m venv .venv
+
+$ .venv/bin/python -m pip install --upgrade pip
+    Uninstalling pip-24.0:
+      Successfully uninstalled pip-24.0
+Successfully installed pip-26.3
+
+$ .venv/bin/python -m pip install -r requirements.txt
+Installing collected packages: pygments, pluggy, packaging, iniconfig, coverage, pytest
+
+Successfully installed coverage-7.6.12 iniconfig-2.3.1 packaging-26.4 pluggy-1.7.0 pygments-2.21.0 pytest-9.2.0
+
+$ .venv/bin/python -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.11s
+
+$ .venv/bin/python -m pytest -v
+tests/test_supermarket.py::test_ten_percent_discount PASSED              [100%]
+
+============================= 118 passed in 0.07s ==============================
+
+$ .venv/bin/python -m coverage run --branch --source=src -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.12s
+
+$ .venv/bin/python -m coverage report -m
+src/teller.py                 29      0      6      0   100%
+----------------------------------------------------------------------
+TOTAL                        238      3     32      0    99%
+
+$ .venv/bin/python exemplo_de_uso.py
+
+Total:                             34.90
+
+
+--- Python 3.12: Python 3.12.3 (/usr/bin/python3.12)
+
+$ /usr/bin/python3.12 -m venv .venv
+
+$ .venv/bin/python -m pip install --upgrade pip
+    Uninstalling pip-24.0:
+      Successfully uninstalled pip-24.0
+Successfully installed pip-26.3
+
+$ .venv/bin/python -m pip install -r requirements.txt
+Installing collected packages: pygments, pluggy, packaging, iniconfig, coverage, pytest
+
+Successfully installed coverage-7.6.12 iniconfig-2.3.1 packaging-26.4 pluggy-1.7.0 pygments-2.21.0 pytest-9.2.0
+
+$ .venv/bin/python -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.11s
+
+$ .venv/bin/python -m pytest -v
+tests/test_supermarket.py::test_ten_percent_discount PASSED              [100%]
+
+============================= 118 passed in 0.06s ==============================
+
+$ .venv/bin/python -m coverage run --branch --source=src -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.14s
+
+$ .venv/bin/python -m coverage report -m
+src/teller.py                 29      0      6      0   100%
+----------------------------------------------------------------------
+TOTAL                        238      3     32      0    99%
+
+$ .venv/bin/python exemplo_de_uso.py
+
+Total:                             34.90
+
+
+--- Python 3.13: Python 3.13.15 (/home/ramon/.local/share/uv/python/cpython-3.13-linux-x86_64-gnu/bin/python3.13)
+
+$ /home/ramon/.local/share/uv/python/cpython-3.13-linux-x86_64-gnu/bin/python3.13 -m venv .venv
+
+$ .venv/bin/python -m pip install --upgrade pip
+    Uninstalling pip-26.2.1:
+      Successfully uninstalled pip-26.2.1
+Successfully installed pip-26.3
+
+$ .venv/bin/python -m pip install -r requirements.txt
+Installing collected packages: pygments, pluggy, packaging, iniconfig, coverage, pytest
+
+Successfully installed coverage-7.6.12 iniconfig-2.3.1 packaging-26.4 pluggy-1.7.0 pygments-2.21.0 pytest-9.2.0
+
+$ .venv/bin/python -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.10s
+
+$ .venv/bin/python -m pytest -v
+tests/test_supermarket.py::test_ten_percent_discount PASSED              [100%]
+
+============================= 118 passed in 0.06s ==============================
+
+$ .venv/bin/python -m coverage run --branch --source=src -m pytest -q
+........................................................................ [ 61%]
+..............................................                           [100%]
+118 passed in 0.13s
+
+$ .venv/bin/python -m coverage report -m
+src/teller.py                 29      0      6      0   100%
+----------------------------------------------------------------------
+TOTAL                        238      3     32      0    99%
+
+$ .venv/bin/python exemplo_de_uso.py
+
+Total:                             34.90
+
+
+======================================================================
+Parte 3: seção 7 (segurança), na raiz do repositório
+======================================================================
+
+$ python3 -m venv ../.venv-audit
+
+$ ../.venv-audit/bin/python -m pip install bandit==1.9.4 pip-audit==2.10.1 safety==3.8.1
+<frozen site>:101: RuntimeWarning: Unexpected value in sys.prefix, expected /home/ramon/dev/faculdade/qualidade_software/.venv-audit, got /home/ramon/dev/faculdade/qualidade_software/kata-limpo/../.venv-audit
+<frozen site>:101: RuntimeWarning: Unexpected value in sys.exec_prefix, expected /home/ramon/dev/faculdade/qualidade_software/.venv-audit, got /home/ramon/dev/faculdade/qualidade_software/kata-limpo/../.venv-audit
+Collecting bandit==1.9.4
+  Using cached bandit-1.9.4-py3-none-any.whl.metadata (7.1 kB)
+Collecting pip-audit==2.10.1
+  Using cached pip_audit-2.10.1-py3-none-any.whl.metadata (28 kB)
+Collecting safety==3.8.1
+  Using cached safety-3.8.1-py3-none-any.whl.metadata (11 kB)
+Collecting PyYAML>=5.3.1 (from bandit==1.9.4)
+  Using cached pyyaml-6.0.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.3 kB)
+Collecting stevedore>=1.20.0 (from bandit==1.9.4)
+  Using cached stevedore-5.10.0-py3-none-any.whl.metadata (2.3 kB)
+Collecting rich (from bandit==1.9.4)
+  Using cached rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+Collecting CacheControl>=0.13.0 (from CacheControl[filecache]>=0.13.0->pip-audit==2.10.1)
+  Using cached cachecontrol-0.15.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting cyclonedx-python-lib<12,>=5 (from pip-audit==2.10.1)
+  Using cached cyclonedx_python_lib-11.12.0-py3-none-any.whl.metadata (6.9 kB)
+Collecting packaging>=23.0.0 (from pip-audit==2.10.1)
+  Using cached packaging-26.4-py3-none-any.whl.metadata (3.5 kB)
+Collecting pip-api>=0.0.28 (from pip-audit==2.10.1)
+  Using cached pip_api-0.0.35-py3-none-any.whl.metadata (17 kB)
+Collecting pip-requirements-parser>=32.0.0 (from pip-audit==2.10.1)
+  Using cached pip_requirements_parser-32.0.1-py3-none-any.whl.metadata (9.3 kB)
+Collecting requests>=2.31.0 (from pip-audit==2.10.1)
+  Using cached requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+Collecting tomli>=2.2.1 (from pip-audit==2.10.1)
+  Using cached tomli-2.5.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (10 kB)
+Collecting tomli-w>=1.2.0 (from pip-audit==2.10.1)
+  Using cached tomli_w-1.2.0-py3-none-any.whl.metadata (5.7 kB)
+Collecting platformdirs>=4.2.0 (from pip-audit==2.10.1)
+  Using cached platformdirs-4.14.8-py3-none-any.whl.metadata (5.7 kB)
+Collecting authlib>=1.2.0 (from safety==3.8.1)
+  Using cached authlib-1.9.10-py2.py3-none-any.whl.metadata (10 kB)
+Collecting certifi (from safety==3.8.1)
+  Using cached certifi-2026.11.20-py3-none-any.whl.metadata (2.5 kB)
+Collecting click>=8.0.2 (from safety==3.8.1)
+  Using cached click-8.5.1-py3-none-any.whl.metadata (2.6 kB)
+Collecting dparse>=0.6.4 (from safety==3.8.1)
+  Using cached dparse-0.6.4-py3-none-any.whl.metadata (5.5 kB)
+Collecting filelock<4.0,>=3.16.1 (from safety==3.8.1)
+  Using cached filelock-3.32.7-py3-none-any.whl.metadata (2.0 kB)
+Collecting httpx (from safety==3.8.1)
+  Using cached httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+Collecting jinja2>=3.1.0 (from safety==3.8.1)
+  Using cached jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Collecting marshmallow>=3.15.0 (from safety==3.8.1)
+  Using cached marshmallow-4.4.0-py3-none-any.whl.metadata (6.8 kB)
+Collecting nltk>=3.9 (from safety==3.8.1)
+  Using cached nltk-3.10.4-py3-none-any.whl.metadata (5.0 kB)
+Collecting pydantic>=2.6.0 (from safety==3.8.1)
+  Using cached pydantic-2.14.4-py3-none-any.whl.metadata (143 kB)
+Collecting ruamel-yaml>=0.17.21 (from safety==3.8.1)
+  Using cached ruamel_yaml-0.19.1-py3-none-any.whl.metadata (16 kB)
+Collecting safety-schemas==0.0.16 (from safety==3.8.1)
+  Using cached safety_schemas-0.0.16-py3-none-any.whl.metadata (1.1 kB)
+Collecting tenacity>=8.1.0 (from safety==3.8.1)
+  Using cached tenacity-9.2.1-py3-none-any.whl.metadata (1.4 kB)
+Collecting tomlkit (from safety==3.8.1)
+  Using cached tomlkit-0.15.3-py3-none-any.whl.metadata (3.4 kB)
+Collecting truststore>=0.10.4 (from safety==3.8.1)
+  Using cached truststore-0.10.5-py3-none-any.whl.metadata (4.5 kB)
+Collecting typer<0.26.0,>=0.16.0 (from safety==3.8.1)
+  Using cached typer-0.25.1-py3-none-any.whl.metadata (15 kB)
+Collecting typing-extensions>=4.7.1 (from safety==3.8.1)
+  Using cached typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting license-expression<31,>=30 (from cyclonedx-python-lib<12,>=5->pip-audit==2.10.1)
+  Using cached license_expression-30.4.4-py3-none-any.whl.metadata (11 kB)
+Collecting packageurl-python<2,>=0.11 (from cyclonedx-python-lib<12,>=5->pip-audit==2.10.1)
+  Using cached packageurl_python-0.17.6-py3-none-any.whl.metadata (5.1 kB)
+Collecting py-serializable<3.0.0,>=2.1.0 (from cyclonedx-python-lib<12,>=5->pip-audit==2.10.1)
+  Using cached py_serializable-2.2.0-py3-none-any.whl.metadata (4.5 kB)
+Collecting sortedcontainers<3.0.0,>=2.4.0 (from cyclonedx-python-lib<12,>=5->pip-audit==2.10.1)
+  Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)
+Collecting boolean.py>=4.0 (from license-expression<31,>=30->cyclonedx-python-lib<12,>=5->pip-audit==2.10.1)
+  Using cached boolean_py-5.0-py3-none-any.whl.metadata (2.3 kB)
+Collecting defusedxml<0.8.0,>=0.7.1 (from py-serializable<3.0.0,>=2.1.0->cyclonedx-python-lib<12,>=5->pip-audit==2.10.1)
+  Using cached defusedxml-0.7.1-py2.py3-none-any.whl.metadata (32 kB)
+Collecting shellingham>=1.3.0 (from typer<0.26.0,>=0.16.0->safety==3.8.1)
+  Using cached shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+Collecting annotated-doc>=0.0.2 (from typer<0.26.0,>=0.16.0->safety==3.8.1)
+  Using cached annotated_doc-0.0.7-py3-none-any.whl.metadata (6.4 kB)
+Collecting cryptography>=45.0.1 (from authlib>=1.2.0->safety==3.8.1)
+  Using cached cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (4.4 kB)
+Collecting joserfc>=1.6.8 (from authlib>=1.2.0->safety==3.8.1)
+  Using cached joserfc-1.8.0-py3-none-any.whl.metadata (3.1 kB)
+Collecting msgpack<2.0.0,>=0.5.2 (from CacheControl>=0.13.0->CacheControl[filecache]>=0.13.0->pip-audit==2.10.1)
+  Using cached msgpack-1.2.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.3 kB)
+Collecting cffi>=2.0.0 (from cryptography>=45.0.1->authlib>=1.2.0->safety==3.8.1)
+  Using cached cffi-2.1.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+Collecting pycparser (from cffi>=2.0.0->cryptography>=45.0.1->authlib>=1.2.0->safety==3.8.1)
+  Using cached pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
+Collecting MarkupSafe>=2.0 (from jinja2>=3.1.0->safety==3.8.1)
+  Using cached markupsafe-3.0.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+Collecting joblib (from nltk>=3.9->safety==3.8.1)
+  Using cached joblib-1.6.0-py3-none-any.whl.metadata (6.5 kB)
+Collecting regex>=2021.8.3 (from nltk>=3.9->safety==3.8.1)
+  Using cached regex-2026.11.24-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
+Collecting tqdm (from nltk>=3.9->safety==3.8.1)
+  Using cached tqdm-4.70.1-py3-none-any.whl.metadata (57 kB)
+Requirement already satisfied: pip in /home/ramon/dev/faculdade/qualidade_software/.venv-audit/lib/python3.14/site-packages (from pip-api>=0.0.28->pip-audit==2.10.1) (26.1.2)
+Collecting pyparsing (from pip-requirements-parser>=32.0.0->pip-audit==2.10.1)
+  Using cached pyparsing-3.3.3-py3-none-any.whl.metadata (5.9 kB)
+Collecting annotated-types>=0.6.0 (from pydantic>=2.6.0->safety==3.8.1)
+  Using cached annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+Collecting pydantic-core==2.50.5 (from pydantic>=2.6.0->safety==3.8.1)
+  Using cached pydantic_core-2.50.5-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.6 kB)
+Collecting typing-inspection>=0.4.4 (from pydantic>=2.6.0->safety==3.8.1)
+  Using cached typing_inspection-0.4.5-py3-none-any.whl.metadata (2.6 kB)
+Collecting charset_normalizer<4,>=2 (from requests>=2.31.0->pip-audit==2.10.1)
+  Using cached charset_normalizer-3.5.3-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (43 kB)
+Collecting idna<4,>=2.5 (from requests>=2.31.0->pip-audit==2.10.1)
+  Using cached idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+Collecting urllib3<3,>=1.26 (from requests>=2.31.0->pip-audit==2.10.1)
+  Using cached urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+Collecting markdown-it-py>=2.2.0 (from rich->bandit==1.9.4)
+  Using cached markdown_it_py-4.3.0-py3-none-any.whl.metadata (7.9 kB)
+Collecting pygments<3.0.0,>=2.13.0 (from rich->bandit==1.9.4)
+  Using cached pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich->bandit==1.9.4)
+  Using cached mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+Collecting anyio (from httpx->safety==3.8.1)
+  Using cached anyio-4.16.0-py3-none-any.whl.metadata (4.7 kB)
+Collecting httpcore==1.* (from httpx->safety==3.8.1)
+  Using cached httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+Collecting h11>=0.16 (from httpcore==1.*->httpx->safety==3.8.1)
+  Using cached h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Collecting cloudpickle>=3.0 (from joblib->nltk>=3.9->safety==3.8.1)
+  Using cached cloudpickle-3.1.3-py3-none-any.whl.metadata (7.1 kB)
+Using cached bandit-1.9.4-py3-none-any.whl (134 kB)
+Using cached pip_audit-2.10.1-py3-none-any.whl (62 kB)
+Using cached safety-3.8.1-py3-none-any.whl (340 kB)
+Using cached safety_schemas-0.0.16-py3-none-any.whl (39 kB)
+Using cached cyclonedx_python_lib-11.12.0-py3-none-any.whl (529 kB)
+Using cached filelock-3.32.7-py3-none-any.whl (100 kB)
+Using cached license_expression-30.4.4-py3-none-any.whl (120 kB)
+Using cached packageurl_python-0.17.6-py3-none-any.whl (36 kB)
+Using cached py_serializable-2.2.0-py3-none-any.whl (23 kB)
+Using cached defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)
+Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)
+Using cached typer-0.25.1-py3-none-any.whl (58 kB)
+Using cached annotated_doc-0.0.7-py3-none-any.whl (5.3 kB)
+Using cached authlib-1.9.10-py2.py3-none-any.whl (267 kB)
+Using cached boolean_py-5.0-py3-none-any.whl (26 kB)
+Using cached cachecontrol-0.15.0-py3-none-any.whl (22 kB)
+Using cached msgpack-1.2.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (465 kB)
+Using cached click-8.5.1-py3-none-any.whl (126 kB)
+Using cached cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl (4.8 MB)
+Using cached cffi-2.1.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
+Using cached dparse-0.6.4-py3-none-any.whl (11 kB)
+Using cached jinja2-3.1.6-py3-none-any.whl (134 kB)
+Using cached joserfc-1.8.0-py3-none-any.whl (73 kB)
+Using cached markupsafe-3.0.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (23 kB)
+Using cached marshmallow-4.4.0-py3-none-any.whl (53 kB)
+Using cached nltk-3.10.4-py3-none-any.whl (1.7 MB)
+Using cached packaging-26.4-py3-none-any.whl (140 kB)
+Using cached pip_api-0.0.35-py3-none-any.whl (123 kB)
+Using cached pip_requirements_parser-32.0.1-py3-none-any.whl (35 kB)
+Using cached platformdirs-4.14.8-py3-none-any.whl (94 kB)
+Using cached pydantic-2.14.4-py3-none-any.whl (494 kB)
+Using cached pydantic_core-2.50.5-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.3 MB)
+Using cached annotated_types-0.8.0-py3-none-any.whl (13 kB)
+Using cached pyyaml-6.0.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (819 kB)
+Using cached regex-2026.11.24-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (812 kB)
+Using cached requests-2.34.2-py3-none-any.whl (73 kB)
+Using cached charset_normalizer-3.5.3-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (257 kB)
+Using cached idna-3.20-py3-none-any.whl (69 kB)
+Using cached urllib3-2.8.0-py3-none-any.whl (135 kB)
+Using cached certifi-2026.11.20-py3-none-any.whl (127 kB)
+Using cached rich-15.0.0-py3-none-any.whl (310 kB)
+Using cached pygments-2.21.0-py3-none-any.whl (1.3 MB)
+Using cached markdown_it_py-4.3.0-py3-none-any.whl (96 kB)
+Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Using cached ruamel_yaml-0.19.1-py3-none-any.whl (118 kB)
+Using cached shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+Using cached stevedore-5.10.0-py3-none-any.whl (56 kB)
+Using cached tenacity-9.2.1-py3-none-any.whl (32 kB)
+Using cached tomli-2.5.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (283 kB)
+Using cached tomli_w-1.2.0-py3-none-any.whl (6.7 kB)
+Using cached truststore-0.10.5-py3-none-any.whl (19 kB)
+Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Using cached typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+Using cached anyio-4.16.0-py3-none-any.whl (134 kB)
+Using cached joblib-1.6.0-py3-none-any.whl (306 kB)
+Using cached cloudpickle-3.1.3-py3-none-any.whl (22 kB)
+Using cached pycparser-3.12-py3-none-any.whl (62 kB)
+Using cached pyparsing-3.3.3-py3-none-any.whl (126 kB)
+Using cached tomlkit-0.15.3-py3-none-any.whl (55 kB)
+Using cached tqdm-4.70.1-py3-none-any.whl (80 kB)
+Installing collected packages: sortedcontainers, boolean.py, urllib3, typing-extensions, truststore, tqdm, tomlkit, tomli-w, tomli, tenacity, stevedore, shellingham, ruamel-yaml, regex, PyYAML, pyparsing, pygments, pycparser, platformdirs, pip-api, packaging, packageurl-python, msgpack, mdurl, marshmallow, MarkupSafe, license-expression, idna, h11, filelock, defusedxml, cloudpickle, click, charset_normalizer, certifi, annotated-types, annotated-doc, typing-inspection, requests, pydantic-core, py-serializable, pip-requirements-parser, markdown-it-py, joblib, jinja2, httpcore, dparse, cffi, anyio, rich, pydantic, nltk, httpx, cyclonedx-python-lib, cryptography, CacheControl, typer, safety-schemas, joserfc, bandit, pip-audit, authlib, safety
+
+Successfully installed CacheControl-0.15.0 MarkupSafe-3.0.4 PyYAML-6.0.4 annotated-doc-0.0.7 annotated-types-0.8.0 anyio-4.16.0 authlib-1.9.10 bandit-1.9.4 boolean.py-5.0 certifi-2026.11.20 cffi-2.1.1 charset_normalizer-3.5.3 click-8.5.1 cloudpickle-3.1.3 cryptography-50.0.2 cyclonedx-python-lib-11.12.0 defusedxml-0.7.1 dparse-0.6.4 filelock-3.32.7 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 jinja2-3.1.6 joblib-1.6.0 joserfc-1.8.0 license-expression-30.4.4 markdown-it-py-4.3.0 marshmallow-4.4.0 mdurl-0.1.2 msgpack-1.2.4 nltk-3.10.4 packageurl-python-0.17.6 packaging-26.4 pip-api-0.0.35 pip-audit-2.10.1 pip-requirements-parser-32.0.1 platformdirs-4.14.8 py-serializable-2.2.0 pycparser-3.12 pydantic-2.14.4 pydantic-core-2.50.5 pygments-2.21.0 pyparsing-3.3.3 regex-2026.11.24 requests-2.34.2 rich-15.0.0 ruamel-yaml-0.19.1 safety-3.8.1 safety-schemas-0.0.16 shellingham-1.5.4 sortedcontainers-2.4.0 stevedore-5.10.0 tenacity-9.2.1 tomli-2.5.0 tomli-w-1.2.0 tomlkit-0.15.3 tqdm-4.70.1 truststore-0.10.5 typer-0.25.1 typing-extensions-4.16.0 typing-inspection-0.4.5 urllib3-2.8.0
+
+[notice] A new release of pip is available: 26.1.2 -> 26.3
+[notice] To update, run: /home/ramon/dev/faculdade/qualidade_software/kata-limpo/../.venv-audit/bin/python -m pip install --upgrade pip
+
+$ ../.venv-audit/bin/bandit -r python_pytest/src
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.14.6
+Run started:2026-11-25 22:09:46.153035+00:00
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 349
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+Files skipped (0):
+
+$ ../.venv-audit/bin/pip-audit -r python_pytest/requirements.txt
+No known vulnerabilities found
+
+$ ../.venv-audit/bin/safety auth login
+(não executado: abre o navegador para o login na Safety Platform)
+
+$ ../.venv-audit/bin/safety scan --target python_pytest
+(executado sem login, para registrar a limitação de acesso)
+
+Please login or register Safety CLI (free forever) to scan and secure your 
+projects with Safety
+
+(R)egister for a free account in 30 seconds, or (L)ogin with an existing account
+to continue (R/L): Unhandled exception happened: EOF when reading a line
+
+======================================================================
+Parte 4: arquivos não rastreados ou alterados no clone
+======================================================================
+
+$ git status --short
+(vazio)
+
+======================================================================
+Resultado: 0 falha(s)
+======================================================================

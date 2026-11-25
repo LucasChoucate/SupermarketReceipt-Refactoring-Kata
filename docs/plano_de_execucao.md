@@ -620,11 +620,22 @@ cd ../kata-limpo
 - Copiar os comandos **do próprio README**, e não de memória.
 - Se algum passo falhar ou exigir algo que o README não diz, corrigir o README em um novo commit e recomeçar de um clone novo.
 - Salvar em `docs/evidencias/testes/07_execucao_independente.log`, no repositório original: o commit testado (`git log -1 --oneline`), o sistema operacional, o `python --version`, a saída do `pytest -v` e o relatório de cobertura.
-- Rodar também os comandos de segurança do README. O esperado é 0 ocorrências no Bandit e 0 vulnerabilidades no pip-audit. Não salvar esses resultados como evidência nova.
+- Rodar também os comandos de segurança do README. O esperado é 0 ocorrências no Bandit e 0 vulnerabilidades no pip-audit. O resultado entra no log só como verificação dos comandos: os relatórios oficiais continuam em `docs/evidencias/seguranca/`.
 - No fim, o `git status --short` do clone deve sair vazio, o que prova que o `.gitignore` cobre `.venv`, `.coverage` e `.pytest_cache`. Depois, apagar o `../kata-limpo`.
-- Repetir a instalação e os testes em cada versão do Python, da 3.10 à mais recente disponível, para comprovar o mínimo declarado no README. Uma forma de obter as versões é o `uv` (`uv python install 3.10`; `uv python find 3.10` mostra o caminho do interpretador, que substitui o `python3` no comando do `venv`). Registrar o resultado no mesmo log e acrescentar a linha correspondente na tabela de ambientes do README. Uma execução preliminar, em 25/11/2026 no Ubuntu 24.04, passou com 118 testes nas versões 3.10.21, 3.11.16, 3.12.3, 3.13.15 e 3.14.6.
+- Repetir a instalação e os testes em cada versão do Python, da 3.10 à mais recente disponível, para comprovar o mínimo declarado no README. Uma forma de obter as versões é o `uv` (`uv python install 3.10`; `uv python find 3.10` mostra o caminho do interpretador, que substitui o `python3` no comando do `venv`). Registrar o resultado no mesmo log e acrescentar a linha correspondente na tabela de ambientes do README.
 - No Windows, outro integrante refaz a instalação e os testes pelo PowerShell (log opcional: `07_execucao_independente_windows.log`). Se alguém do grupo tiver macOS, repetir também nele.
 - Incluir a execução na seção 3 de [`evidencias_testes.md`](evidencias_testes.md) e ajustar a seção 7, que fala dos ambientes.
+
+**Situação em 25/11/2026.** A execução no Linux está feita e registrada em [`07_execucao_independente.log`](evidencias/testes/07_execucao_independente.log), sobre o commit `0c1edd3`, no Ubuntu 24.04:
+
+- os comandos foram extraídos dos blocos `bash` do próprio README do clone, sem edição, exceto o interpretador do `venv` nas versões 3.10 a 3.13;
+- com o `python3` do sistema (3.14.6) e com as versões 3.10.21, 3.11.16, 3.12.3 e 3.13.15, a suíte deu 118 aprovados e 99% de cobertura, e o exemplo de uso imprimiu o total `34.90`;
+- o Bandit não encontrou ocorrências em 349 linhas, e o pip-audit não encontrou vulnerabilidades;
+- sem login, o `safety scan` só pede o cadastro ou o login, e o log registra essa limitação;
+- o `git status --short` do clone saiu vazio;
+- nenhum comando falhou, e o README não precisou de correção.
+
+Ficam com o grupo: a execução no Windows pelo PowerShell, a execução do Safety com o login de um integrante e, se possível, a execução no macOS.
 
 ### 9.10: completar a rastreabilidade
 

@@ -62,6 +62,7 @@ Ambientes em que a suíte foi executada:
 |---|---|---|---|
 | Linux | 3.14.6 | Todas as fases, da execução original aos combos | Logs [`01`](docs/evidencias/testes/01_pytest_inicial.log) a [`05`](docs/evidencias/testes/05_pytest_apos_combos.log) |
 | Windows | 3.12.5 | 118 aprovados | [`06_pytest_final.log`](docs/evidencias/testes/06_pytest_final.log) |
+| Linux (Ubuntu 24.04) | 3.10.21, 3.11.16, 3.12.3, 3.13.15 e 3.14.6 | 118 aprovados e 99% de cobertura em cada versão, seguindo este README em um clone limpo | [`07_execucao_independente.log`](docs/evidencias/testes/07_execucao_independente.log) |
 
 ---
 

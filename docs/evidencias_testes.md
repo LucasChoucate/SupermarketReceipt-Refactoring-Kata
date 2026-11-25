@@ -28,6 +28,8 @@ python -m coverage run --branch --source=src -m pytest -q -p no:cacheprovider
 python -m coverage report -m
 ```
 
+A instalação do ambiente e os comandos para cada sistema operacional estão nas seções [4](../README.md#4-instalação) e [5](../README.md#5-testes-e-cobertura) do README.
+
 ## 3. Evolução da suíte por fase
 
 | Fase | Situação do código | Resultado | Cobertura (linhas e ramos) | Log |
@@ -38,6 +40,7 @@ python -m coverage report -m
 | Correção dos defeitos | DEF-01, DEF-02 e DEF-03 corrigidos | 80 aprovados, 0 `xfail` | 99% | [`04_pytest_apos_correcoes.log`](evidencias/testes/04_pytest_apos_correcoes.log) |
 | Combos | `add_bundle_offer` implementado | 109 aprovados | 99% | [`05_pytest_apos_combos.log`](evidencias/testes/05_pytest_apos_combos.log) |
 | Regressão | Cenário 15 incluído | **118 aprovados** | **99%** | [`06_pytest_final.log`](evidencias/testes/06_pytest_final.log) |
+| Execução independente | Mesmo código, em um clone limpo, seguindo só os comandos do README, com o Python 3.10, 3.11, 3.12, 3.13 e 3.14 | 118 aprovados em cada versão | 99% em cada versão | [`07_execucao_independente.log`](evidencias/testes/07_execucao_independente.log) |
 
 O arquivo [`pytest_antes_ubuntu.log`](evidencias/pytest_antes_ubuntu.log) registra os 57 testes de caracterização no momento em que foram criados.
 
@@ -88,4 +91,5 @@ Todos têm justificativa no [registro de defeitos](registro_de_defeitos.md#4-imp
 
 - A suíte exercita o comportamento dos exemplos escolhidos. A cobertura de 99% mostra que todo o código foi executado, não que todo caso possível foi testado.
 - Os valores monetários continuam em `float`. Os testes usam `pytest.approx` e o texto do recibo com 2 casas decimais.
-- Os logs 01 a 05 foram gerados em Linux (Ubuntu) e o log 06 foi gerado em Windows. A comparação entre eles vale pelas contagens de testes e pela cobertura, não pelo tempo de execução.
+- Os logs 01 a 05 foram gerados em Linux (Ubuntu), o log 06 em Windows e o log 07 em Ubuntu 24.04, com cinco versões do Python. A comparação entre eles vale pelas contagens de testes e pela cobertura, não pelo tempo de execução.
+- O número de comandos que o `coverage` conta em `src/` muda com a versão do Python: 236 no Python 3.14 e 238 nas versões 3.10 a 3.13. As linhas não cobertas são as mesmas 3 de `catalog.py`, e a cobertura é de 99% em todas as versões.
