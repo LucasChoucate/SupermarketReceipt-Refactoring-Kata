@@ -539,8 +539,6 @@ As correções mudaram de propósito **7 casos de teste** (3 do DEF-01 e 4 do DE
 
 - **Valores monetários em `float`.** O tipo foi mantido para não alterar os valores observados pelos testes (RNF09). O recibo arredonda para 2 casas, e a escolha entre ofertas e combos compara os totais em centavos, mas a imprecisão do `float` continua sendo um risco remanescente.
 - **A política de combos decide pelo carrinho inteiro.** Ela compara duas ordens de aplicação, e não todas as distribuições possíveis entre ofertas e combos.
-- **Inversão de dependência incompleta.** O `Teller` cria o `DiscountEngine` e os combos diretamente, para preservar o construtor `Teller(catalog)`, e cada tipo novo de oferta exige uma entrada na fábrica.
-- **Cobertura não é completude.** Os 99% de cobertura mostram que todo o código foi executado pelos testes, e não que todos os casos possíveis foram testados.
 - **Limites das ferramentas de segurança.** O Safety exige conta e aplica uma política guardada na nuvem. O pip-audit e o Safety só conhecem vulnerabilidades já publicadas, e nenhuma das três ferramentas analisa o sistema em execução.
 - **Evidências de ambientes diferentes.** Os logs foram gerados em máquinas diferentes, com Linux e Windows e versões diferentes do Python. A comparação entre eles vale pelas contagens de testes e pela cobertura, e não pelo tempo de execução.
 
