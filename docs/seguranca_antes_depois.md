@@ -233,7 +233,7 @@ Execução de 24/11/2026, com os comandos da [seção 2.3](#23-comandos-executad
 |---|---|---|
 | 1 | Fixar as versões | `requirements.txt` com `pytest==9.2.0` e `coverage==7.6.12` |
 | 2 | Remover o `approvaltests` (D7) | `approvaltests` e `pytest-approvaltests` saíram do `requirements.txt`. Foram removidos também o `tests/approvaltests_config.json` e a entrada `.approval_tests_temp` do `python_pytest/.gitignore`. Os 118 testes continuam passando, o que confirma que nenhum deles usava a biblioteca |
-| 3 | Atualizar o `pip` do ambiente | `.venv` recriado do zero, com o `pip` 26.3. O passo de atualização foi incluído na seção "Setup" do [`python_pytest/README.md`](../python_pytest/README.md#setup) |
+| 3 | Atualizar o `pip` do ambiente | `.venv` recriado do zero, com o `pip` 26.3. O passo de atualização foi incluído na seção "Setup" do `python_pytest/README.md` e, na Fase 9, passou para a [seção 4.2 do README da raiz](../README.md#42-criar-o-ambiente-virtual-e-instalar-as-dependências), que concentra as instruções de instalação |
 
 **Sobre a versão do `pytest`.** Uma primeira tentativa fixou `pytest==8.3.5`. O Safety passou a apontar o A-01 como ocorrência **não ignorada**, porque a versão fixada estava dentro da faixa vulnerável (`<9.0.3`). Antes da fixação, a política o ignorava só por falta de versão. A versão foi corrigida para 9.2.0 antes da execução registrada aqui. O episódio mostra que fixar a versão só resolve o alerta quando a versão escolhida está fora da faixa vulnerável.
 

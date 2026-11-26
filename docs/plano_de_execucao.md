@@ -2,8 +2,6 @@
 
 Este documento organiza o trabalho que falta para cumprir o edital. Ele está dividido em 10 fases, em ordem. Cada fase indica o passo do edital que cumpre, o que fazer, quais arquivos mudam e como saber que terminou.
 
-> **Situação atual.** As Fases 0 a 4 estão integradas na `develop`: documentos de análise, linha de base de segurança, testes de caracterização, refatoração com padrões de projeto e correção dos três defeitos. Os combos (Fase 5) estão concluídos na branch `feat/combos`, com 109 testes passando. Ainda faltam a regressão com combos (Fase 6), a segurança "depois", o README e a apresentação.
-
 ---
 
 ## Sumário
@@ -21,10 +19,6 @@ Este documento organiza o trabalho que falta para cumprir o edital. Ele está di
 - [Fase 7: Reavaliação de segurança](#fase-7-reavaliação-de-segurança)
 - [Fase 8: Documento de padrões de projeto](#fase-8-documento-de-padrões-de-projeto)
 - [Fase 9: README e evidências finais](#fase-9-readme-e-evidências-finais)
-- [Fase 10: Apresentação e entrega](#fase-10-apresentação-e-entrega)
-- [Checklist anti-penalidade](#checklist-anti-penalidade)
-- [O que pode andar em paralelo](#o-que-pode-andar-em-paralelo)
-
 ---
 
 ## Regras gerais
@@ -96,10 +90,6 @@ Comparar só os percentuais também engana. O combo dá 10% nos **dois** produto
 | Não há desconto duplicado | Cada unidade é consumida por uma única política |
 | Carrinho sem combo completo fica idêntico ao cálculo sem combos | Nas duas ordens nenhum combo se forma |
 
-> A comparação é sempre com **o mesmo carrinho sem combos, no sistema já corrigido** (ver D2). Nos cenários dos defeitos DEF-01 e DEF-02, o total muda em relação ao legado por causa das correções, não por causa dos combos.
-| É determinística e testável | São sempre exatamente dois cálculos |
-
-**Limitação documentada:** a escolha é feita para o carrinho inteiro. Distribuições mistas não são testadas, como "este combo primeiro, aquela oferta primeiro". Isso exigiria testar todas as combinações, o que aumentaria a complexidade e não é exigido pelo edital.
 
 ### Quem vence: exemplos
 
@@ -132,15 +122,13 @@ Estas decisões devem constar no plano de contingência e no README.
 
 ## Fase 0: Organização do repositório
 
-> **Edital:** base da estratégia de reversão e de "Evidências / README" | **Branch:** `chore/organizacao`
-
-- [ ] **Criar e publicar a tag da linha de base**, que é a versão estável citada na estratégia de reversão:
+- [x] **Criar e publicar a tag da linha de base**, que é a versão estável citada na estratégia de reversão:
   ```bash
   git tag legado-baseline 58df732
   git push origin legado-baseline
   ```
-- [ ] **Incluir `*:Zone.Identifier` no `.gitignore` da raiz.** São arquivos que o Windows cria ao baixar documentos.
-- [ ] **Criar a estrutura de pastas:**
+- [x] **Incluir `*:Zone.Identifier` no `.gitignore` da raiz.** São arquivos que o Windows cria ao baixar documentos.
+- [x] **Criar a estrutura de pastas:**
   ```
   docs/
   ├── diagnostico_tecnico.md
@@ -157,10 +145,11 @@ Estas decisões devem constar no plano de contingência e no README.
           └── depois/
   apresentacao/
   ```
-  A sugestão é escrever em Markdown (versionável, com diffs visíveis nos PRs) e exportar para PDF no final. Quem preferir o Word deve exportar o PDF para essas mesmas pastas.
-- [ ] **Definir um ambiente de referência** (por exemplo, Python 3.12 em Ubuntu ou WSL) e registrá-lo no README. Hoje há três ambientes diferentes nos registros: 3.13.11 no Windows, 3.12.5 no Windows e 3.12.3 no Ubuntu.
-- [ ] **Regenerar as evidências do Passo 2:**
-  - [ ] Log da execução **original** (1 teste). Ele é gerado em um *worktree* temporário, uma cópia do commit original em outra pasta, para não mexer na branch atual:
+
+- [x] **Definir um ambiente de referência** (por exemplo, Python 3.12 em Ubuntu ou WSL) e registrá-lo no README. Hoje há três ambientes diferentes nos registros: 3.13.11 no Windows, 3.12.5 no Windows e 3.12.3 no Ubuntu.
+  - Decidido na Fase 9 (decisão 2): em vez de um ambiente único, o README exige o Python 3.10 ou superior em qualquer sistema operacional e lista os ambientes em que a suíte foi executada.
+- [x] **Regenerar as evidências do Passo 2:**
+  - [x] Log da execução **original** (1 teste). Ele é gerado em um *worktree* temporário, uma cópia do commit original em outra pasta, para não mexer na branch atual:
     ```bash
     REPO=$(pwd)
     git worktree add ../kata-inicial 095e831
@@ -170,7 +159,7 @@ Estas decisões devem constar no plano de contingência e no README.
     cd "$REPO"
     git worktree remove ../kata-inicial
     ```
-  - [ ] Log após a caracterização (57 testes): o `docs/evidencias/pytest_antes_ubuntu.log` já está em UTF-8 e com os nomes atuais dos testes, então serve como evidência. Remover o `pytest_antes_windows.log`, que está em UTF-16 e com um nome de teste desatualizado, ou regenerá-lo em UTF-8 no Windows (`python -m pytest -v | Out-File -Encoding utf8 <arquivo>`).
+  - [x] Log após a caracterização (57 testes): o `docs/evidencias/pytest_antes_ubuntu.log` já está em UTF-8 e com os nomes atuais dos testes, então serve como evidência. Remover o `pytest_antes_windows.log`, que está em UTF-16 e com um nome de teste desatualizado, ou regenerá-lo em UTF-8 no Windows (`python -m pytest -v | Out-File -Encoding utf8 <arquivo>`).
 
 **Pronto quando:** a tag está no remoto, a pasta `docs/` está estruturada e os logs estão em UTF-8.
 
@@ -198,8 +187,6 @@ Estas decisões devem constar no plano de contingência e no README.
 
 ### 1.2 Requisitos
 
-> **Feito em [`requisitos.md`](requisitos.md).** Para não criar requisitos desnecessários, os itens marcados como "novo RF/RNF" e a quebra do RF04/RF05 foram atendidos como **critérios de aceitação** dos requisitos existentes: o percentual no RF04, os critérios das ofertas por grupo e de DEF-01/DEF-02 no RF05, D6 no RF11 e DEF-03 no RNF01. A rastreabilidade já tem os testes de caracterização e segue sendo preenchida nas Fases 4 a 6.
-
 - [x] **RF01:** corrigir a descrição. O preço vem do catálogo no momento do checkout e não é registrado no carrinho.
 - [x] **Quebrar RF04 e RF05 em um requisito por oferta**, com critérios numéricos:
   - [x] 3 por 2 (por exemplo, 7 unidades a R$ 10 custam R$ 50);
@@ -218,8 +205,6 @@ Estas decisões devem constar no plano de contingência e no README.
 - [x] **Incluir a coluna de rastreabilidade:** RF → arquivo ou classe → nome do teste → evidência. Preencher ao longo das Fases 4 a 6.
 
 ### 1.3 Plano de contingência
-
-> **Feito em [`plano_contingencia.md`](plano_contingencia.md).** Além dos itens abaixo, a seção 2.1 perdeu a referência à proporcionalidade mínima, os riscos ligados aos requisitos removidos foram ajustados (o R10 passou a tratar das correções de defeitos, e foi incluído o R13, de quebra de comportamento ou de interface na refatoração), e a estratégia de reversão incorporou o fluxo de branches e PRs para a `develop` sugerido nos comentários do documento.
 
 - [x] **Tabela de interfaces:**
   - [x] corrigir `Teller.checkout_articles_from_cart` para **`Teller.checks_out_articles_from`**;
@@ -275,23 +260,17 @@ No Windows, troque `../.venv-audit/bin/` por `..\.venv-audit\Scripts\`.
 
 Registrar em `docs/seguranca_antes_depois.md`:
 
-- [ ] **Ambiente:** versões das ferramentas, sistema operacional, versão do Python e os comandos exatos.
-- [ ] **Limitação de acesso:** se o Safety exigiu login ou conta.
-- [ ] **Escopo:** por que o Bandit cobriu só o `src/`. Os testes usam `assert`, que gera alertas B101 esperados.
-- [ ] **Triagem do `filelock`:** a origem dele e a comparação entre o ambiente contaminado e o ambiente isolado.
-- [ ] **Divergência de contagem:** a diferença entre 14 e 13 ocorrências do Safety, ou a constatação de que ela some no ambiente limpo.
-- [ ] **Tabela de classificação:**
-
-  | ID | Ferramenta | Pacote ou arquivo | Severidade | Relevância no contexto | Ação | Justificativa |
-  |---|---|---|---|---|---|---|
+- [x] **Ambiente:** versões das ferramentas, sistema operacional, versão do Python e os comandos exatos.
+- [x] **Limitação de acesso:** se o Safety exigiu login ou conta.
+- [x] **Escopo:** por que o Bandit cobriu só o `src/`. Os testes usam `assert`, que gera alertas B101 esperados.
+- [x] **Triagem do `filelock`:** a origem dele e a comparação entre o ambiente contaminado e o ambiente isolado.
+- [x] **Divergência de contagem:** a diferença entre 14 e 13 ocorrências do Safety, ou a constatação de que ela some no ambiente limpo.
 
 ---
 
 ## Fase 3: Complementar os testes de caracterização
 
 > **Edital:** Passo 6 | **Branch:** `test/caracterizacao-complemento`
-
-> **Concluída.** A suíte passou de 57 para **64 testes passando e 7 `xfail`**, com 99% de cobertura de ramos no `src/`. Evidências: [`02_pytest_antes_da_refatoracao.log`](evidencias/testes/02_pytest_antes_da_refatoracao.log) e [`02_cobertura_antes.txt`](evidencias/testes/02_cobertura_antes.txt).
 
 - [x] **Teste "carrinho sem combos = legado":** fixar o recibo impresso de alguns carrinhos variados (sem ofertas, com cada tipo de oferta, com produto por peso). Esse teste será repetido depois com combos cadastrados para outros produtos. **Não usem** nesses carrinhos os cenários dos defeitos ("2 por valor" com quantidade ímpar e oferta por grupo ativada com quantidade fracionária). Esses cenários já têm testes próprios, e assim o teste continua válido depois das correções.
   - Feito em [`test_recibos_de_referencia.py`](../python_pytest/tests/test_recibos_de_referencia.py), com 7 cenários. Os carrinhos não usam `shampoo` nem `condicionador`, para que na Fase 6 o teste seja repetido com um combo desses dois produtos cadastrado (cenário 15).
@@ -312,7 +291,7 @@ Registrar em `docs/seguranca_antes_depois.md`:
   ```
   Referência atual: 99% de cobertura de ramos. As únicas linhas não cobertas são as do stub de banco em `catalog.py`.
 
-**Pronto quando:** a suíte passa e a cobertura de baseline está salva.
+**Indicador de conclusão:** a suíte passa e a cobertura de baseline está salva.
 
 ---
 
@@ -554,67 +533,16 @@ Os cenários de combo (1 a 14) entraram na Fase 5, junto com o código. Esta fas
 
 > **Edital:** entregável 5.9 | **Barema:** 0,5 (Evidências) + 0,5 (README) | **Branch:** `docs/readme`
 
-- [ ] **Reescrever o `README.md` da raiz**, que hoje é o original do kata, em inglês. Ele precisa ter:
-  - [ ] objetivo do trabalho e integrantes;
-  - [ ] ambiente de referência (sistema operacional, versão do Python);
-  - [ ] instalação (`python -m venv .venv`, `pip install -r requirements.txt`);
-  - [ ] como rodar os testes e a cobertura;
-  - [ ] como rodar o Bandit, o pip-audit e o Safety, com o ambiente separado;
-  - [ ] estrutura de pastas;
-  - [ ] decisões arquiteturais (D1 a D7) e padrões adotados, com links para a pasta `docs/`;
-  - [ ] seção "Defeitos corrigidos", resumindo DEF-01 a DEF-03 e apontando para o registro de defeitos.
-- [ ] **Testar o README do zero** em uma máquina ou pasta limpa. É o critério "execução independente" do barema.
-- [ ] **Completar a coluna de rastreabilidade** dos requisitos (RF → implementação → teste → evidência).
+A fase altera documentação e o `.gitignore` e acrescenta um script de exemplo, `python_pytest/exemplo_de_uso.py` (decisão 5). O `src/` e o `tests/` não mudam, e a suíte continua com 118 testes passando em todos os commits.
 
----
+### Decisões da fase
 
-## Fase 10: Apresentação e entrega
-
-> **Edital:** entregável 5.10 | **Arquivo:** `apresentacao/slides.pdf`
-
-Roteiro sugerido para 10 a 15 minutos:
-
-1. **O problema inicial:** um sistema legado com ofertas concentradas no `handle_offers`.
-2. **O diagnóstico:** os principais smells e as violações de SOLID, com trechos de código.
-3. **O plano e os riscos:** ordem das alterações e estratégia de reversão (tag e branches).
-4. **Testes de caracterização e defeitos:** 57 testes, 99% de cobertura, os **3 defeitos encontrados** e como cada um foi corrigido (tabela de antes e depois do registro de defeitos).
-5. **Os padrões e o SOLID:** Strategy, Template Method e Factory, com o diagrama de antes e depois.
-6. **A regra dos combos e a política de convivência:** a tabela "Quem vence".
-7. **Resultados dos testes:** o comparativo de antes e depois.
-8. **Segurança:** as três ferramentas, a triagem e o **caso do `filelock`**.
-9. **Lições aprendidas e limitações:** separar refatoração de correção, a escolha por carrinho inteiro na política de combos e o uso de `float` como risco remanescente.
-
-Fechamento:
-
-- [ ] Fazer o merge da `develop` na `main` por PR.
-- [ ] Criar a tag `v1.0-entrega` e publicá-la no remoto.
-
----
-
-## Checklist anti-penalidade
-
-| Penalidade do edital | Valor | Coberta na fase |
+| # | Decisão | Escolha |
 |---|---|---|
-| Diagnóstico técnico ausente | −3,0 | 1.1 |
-| Plano de contingência ausente | −3,0 | 1.3 |
-| Testes automatizados ausentes | −3,0 | 3 e 6 |
-| Código final não executa | nota máxima 5,0 | Suíte passando em todo commit; README testado (9) |
-| Quebra injustificada de regras ou interfaces | −2,0 | Testes de contrato preservados; D5; as únicas mudanças de regra são as correções DEF-01 a DEF-03, isoladas em commits próprios e justificadas no registro de defeitos |
-| Regra de combos incorreta ou ausente | −2,0 | 5 e 6 |
-| Faltar os dois padrões exigidos | zero no critério | 4 e 8 |
-| Faltar a análise das três ferramentas | zero no critério | 2 e 7 |
+| 1 | Integrantes | Felipe Nogueira, Lucas Choucate, Júlia Gaglianone, Ramon Papes e Suianne Martins |
+| 2 | Ambiente | Não há um ambiente de referência único: o projeto deve rodar em **qualquer sistema operacional** com **Python 3.10 ou superior**, o mínimo exigido pelo `pytest==9.2.0`. O README traz os comandos para Linux, macOS e Windows e lista os ambientes em que a suíte já foi executada, com a evidência de cada um |
+| 3 | Lições aprendidas, elemento da seção 6 do edital que ainda não existe | Seção curta no próprio README |
+| 4 | `python_pytest/README.md`, que repete os comandos de instalação | Manter a descrição original do kata e trocar o conteúdo da seção *Setup* por um link para o README da raiz, para que haja uma única versão dos comandos. O título *Setup* fica, como no original do kata. A seção 8 do [`seguranca_antes_depois.md`](seguranca_antes_depois.md#8-resultados-depois-da-modernização), que apontava para `python_pytest/README.md#setup`, passa a apontar para a seção 4.2 do README da raiz, onde está o passo de atualização do `pip` |
+| 5 | Como executar o exemplo de uso em qualquer sistema operacional | Um script, `python_pytest/exemplo_de_uso.py`, que inclui `src/` e `tests/` no caminho de importação a partir da própria localização. Assim ele roda com um único comando, sem a variável `PYTHONPATH`, cujo separador muda entre Linux (`:`) e Windows (`;`). O pytest não o coleta, porque o nome não segue o padrão `test_*.py` |
 
 ---
-
-## O que pode andar em paralelo
-
-```
-Fase 0 ──┬── Fase 1 (documentos) ─────────────┐
-         ├── Fase 2 (segurança antes) ────────┤
-         └── Fase 3 (testes complementares) ──┴── Fase 4 ── Fase 5 ── Fase 6 ──┬── Fase 7 ──┐
-                                                                               └── Fase 8 ──┴── Fase 9 ── Fase 10
-```
-
-- **Fases 1, 2 e 3:** podem ser feitas por pessoas diferentes ao mesmo tempo, logo depois da Fase 0.
-- **Fases 4 a 6:** são **sequenciais**, porque cada commit depende do anterior. O ideal é uma pessoa conduzindo e outra revisando os PRs.
-- **Fases 7 e 8:** podem andar em paralelo assim que a Fase 6 terminar.
