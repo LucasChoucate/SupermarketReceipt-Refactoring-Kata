@@ -10,6 +10,11 @@ You are working on the software for a supermarket, in particular for the teller 
 The starting position for this exercise contains the code for setting up the Teller object, a catalog of products, the shopping cart, and any special offers. It can calculate the price of a shopping cart and generate a receipt, but so far there aren't many test cases.
 
 ## Setup
-- make a venv
-- install requirements, e.g. `python -m pip install -r requirements.txt`
-- use pytest to run the tests
+
+The setup instructions for this project are in the [root README](../README.md), written in Portuguese, with commands for Linux, macOS and Windows. The commands in these sections run from this folder (`python_pytest/`):
+
+- [Installation](../README.md#4-instalação): Python 3.10 or later, virtual environment, `pip` upgrade and pinned requirements.
+- [Tests and coverage](../README.md#5-testes-e-cobertura).
+- [Usage example](../README.md#6-exemplo-de-uso).
+
+The [security analysis](../README.md#7-análise-de-segurança) commands run from the repository root.
