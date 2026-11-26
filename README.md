@@ -434,6 +434,21 @@ Os métodos marcados com `*` são abstratos. Os diagramas completos de antes e d
 
 A refatoração e os combos não mudaram nenhuma interface pública existente: `Teller(catalog)`, `add_special_offer()`, `checks_out_articles_from()`, `product_with_name()` e `offers`; os métodos e propriedades de `ShoppingCart`, incluindo o `handle_offers()`; o `Receipt`; e o `SpecialOfferType`, com os mesmos membros e valores. Os testes de contrato da caracterização protegem essas interfaces, e a lista completa está no [plano de contingência](docs/plano_contingencia.md#3-interfaces-que-devem-permanecer-compatíveis). Tudo o que foi criado é aditivo, como o `Teller.add_bundle_offer()`.
 
+### 9.6 Clean Code
+
+Além dos problemas de estrutura, o diagnóstico apontou problemas de legibilidade no legado ([seções 3.1, 3.3, 3.7 a 3.9 e 6 do diagnóstico](docs/diagnostico_tecnico.md#3-análise-de-code-smells)). A tabela compara o código de `python_pytest/src/` na tag `legado-baseline` com o código atual:
+
+| Prática | Legado | Agora |
+|---|---|---|
+| **Métodos pequenos, com uma responsabilidade** | O `handle_offers()` tinha um corpo de 38 linhas e identificava, verificava e calculava todas as ofertas | Nenhum método passa de 12 linhas de corpo, sem contar a docstring. O `handle_offers()` tem uma linha, que delega o cálculo ao `DiscountEngine` |
+| **Nomes que revelam a intenção** | `p`, `x`, `number_of_x` e `pq`. O mesmo conceito tinha três nomes: `discount_n`, `discount_amount` e `discount_total` | `product`, `group_size()`, `number_of_groups` e `item`, com um só nome para o desconto: `discount_amount`. O preço com a oferta se chama `price_with_offer`, e não mais `total`, que se confundia com o total do recibo |
+| **Sem números mágicos** | Os literais `2`, `3` e `5` estavam espalhados pelo método, e o `2` tinha três significados diferentes | Cada número fica no método que dá nome a ele: o `ThreeForTwo` devolve `3` em `group_size()` e `2 * unit_price` em `group_price()`, e os cálculos derivam desses ganchos. O único literal fora de um gancho é o `100.0` da conversão de percentual |
+| **Sem duplicação** | A fórmula das ofertas por grupo estava escrita três vezes | Está escrita uma vez, em `GroupPriceOffer.apply()` (Template Method, [seção 9.2](#92-padrões-adotados)) |
+| **Parâmetros com nome** | O `Offer.argument` significava o percentual, o preço do grupo ou nada, conforme o tipo da oferta | A fábrica é o único lugar que lê o `argument`. Cada estratégia recebe o valor com o nome certo (`percentage` ou `amount`), e o `ThreeForTwo` não o recebe |
+| **Documentação no código** | Nenhuma docstring nos 5 módulos, nas 11 classes e nos 15 métodos públicos | Docstrings no padrão PEP 257 em todos os 7 módulos, em todas as 20 classes e em 29 dos 41 métodos públicos. Os outros 12 são implementações de ganchos e de `products()`, que já estão documentados na classe base |
+
+**Nos testes:** Os nomes dos testes descrevem o cenário de negócio, como `test_combo_desconta_10_por_cento_so_dos_combos_completos`. Os produtos e os preços ficam em fixtures (`conftest.py`), a montagem do carrinho e o checkout ficam em funções auxiliares (`fechar_compra` e `total_descontos`, em `tests/auxiliares.py`), e os cenários que só mudam os valores usam `pytest.mark.parametrize`, em vez de cópias do mesmo teste.
+
 ---
 
 ## 10. Combos promocionais e decisões registradas
